@@ -1,0 +1,51 @@
+<table id="pager_info" data-options="fit:true"></table> 
+
+<script>
+var testpapre_status = ["","未开考","开考中","阅卷中","已阅"];
+
+$('#pager_info').datagrid({   
+    url:'../testPaper',   //这个表格中数据的来源  
+    queryParams:{op:"findTestPaperBySidAndStatus"},
+    striped:true,
+    nowrap:true,
+    loadMsg:"数据加载中...",
+    sortName:"pid",
+    remoteSort:false,
+    fitColumns:true,
+    pagination:true,
+    rownumbers:true,
+    pageSize:15,
+    pageList:[10,15,20,30,40,50],
+    columns:[[   
+        {field:'pid',title:'试卷编号',width:100,align:'center',sortable:true},   
+        {field:'pname',title:'试卷名称',width:300,align:'center'},
+        {field:'cname',title:'考试课程',width:200,align:'center'},
+        {field:'testTime',title:'开考时间',width:150,align:'center'},
+        {field:'longExam',title:'考试时长',width:100,align:'center'},
+        {field:'status',title:'试卷状态',width:100,align:'center',formatter:function(val,row,index) {
+        	if (val == 1){
+        		return "<font color='red'>" + testpapre_status[val] + "</font>";
+        	} else {
+        		return "<font color='green'>" + testpapre_status[val] + "</font>";;
+        	}
+        }},
+        {field:'_operation',title:'操作',width:200,align:'center',formatter:function(val,row,index){
+        	var str = '';
+        	if (row.status == "1"){
+        		str += '请等待';
+        	} else if (row.status == "2"){
+        		str += '<a href="javascript:void(0)" onclick="pageJoinExam(this,'+row.pid+')" class="navy-icon-page-edit">参加考试</a>';
+        	} 
+       		return str;
+        }}
+    ]]
+}); 
+
+// 参加考试，发送请求准备试卷
+function pageJoinExam(obj,pid){
+	$(obj).attr("onclick","return false").css("color","#CCC");
+	$(obj).parent().parent().prev("td").children("div").text("考试中").css("color","red");
+	window.open('../examServlet?op=joinExam&pid='+pid);
+}
+
+</script>

@@ -1,0 +1,175 @@
+<table id="classes_info" data-options="fit:true"></table> 
+
+<div id="classes_search" style="height:28px;">
+	<a href="javascript:addClassesInfo()" class="easyui-linkbutton" data-options="iconCls:'icon-group-add',plain:true" style="float:left">添加</a>
+	<div class="datagrid-btn-separator"></div>
+	<a href="javascript:updateClassesInfo()" class="easyui-linkbutton" data-options="iconCls:'icon-group-edit',plain:true" style="float:left">修改</a>
+	<div class="datagrid-btn-separator"></div>
+	<a href="javascript:saveClassesInfo()" class="easyui-linkbutton" data-options="iconCls:'icon-save',plain:true" style="float:left">保存</a>
+	<div class="datagrid-btn-separator"></div>
+	<a href="javascript:goBackClasses()" class="easyui-linkbutton" data-options="iconCls:'icon-undo',plain:true" style="float:left">撤销</a>
+	<div class="datagrid-btn-separator"></div>
+	<label class="navy_label">专业：</label>
+	<select id="classes_search_mid" class="navy_select">
+		<option value="">--请选择--</option>
+	</select>
+	<label class="navy_label">入学年份：</label>
+	<select id="classes_search_grade" class="navy_select">
+		<option value="">--请选择--</option>
+	</select>
+	<label class="navy_label">学制：</label>
+	<select id="classes_search_length" class="navy_select">
+		<option value="">--请选择--</option>
+	</select>
+	<a href="javascript:searchClassesInfo()" class="easyui-linkbutton" data-options="iconCls:'icon-search'">查询</a>
+</div>
+
+<script>
+var classesEditRow=undefined;
+var classesOp="";
+var classesFlag="";
+var lengthInfo=[{id:3,name:"3年制"},{id:4,name:"4年制"},{id:5,name:"5年制"}];
+var majorDataInfo;
+var classesDataGridObject;
+
+$(function(){
+	$.post("../../majorInfo",{op:"findAll"},function(data){
+		majorDataInfo=data;
+		var classMajorInfo="";
+		$.each(data,function(index,item){
+			classMajorInfo+="<option value='"+item.mid+"'>"+item.mname+"</option>";
+		});
+		$("#classes_search_mid").append($(classMajorInfo));
+			
+		classInfoShow();	
+	},"json");
+	
+	
+	var lengthObj="";
+	for(var i=0,len=lengthInfo.length;i<len;i++){
+		lengthObj+="<option value='"+lengthInfo[i].id+"'>"+lengthInfo[i].name+"</option>";
+	}
+	$("#classes_search_length").append($(lengthObj));
+	
+	var year=new Date().getFullYear();
+	var gradeInfo="";
+	for(var i = year;i >= 2000;i--){
+		gradeInfo += "<option value='"+i+"'>"+i+"年</option>";
+	}
+	$("#classes_search_grade").append($(gradeInfo));
+})
+
+
+function classInfoShow(){
+	classesDataGridObject=$('#classes_info').datagrid({   
+	    url:'../../classInfo',   //这个表格中数据的来源  
+	    queryParams:{op:"findByPage"},
+	    striped:true,
+	    nowrap:true,
+	    loadMsg:"数据加载中...",
+	    sortName:"cid",
+	    remoteSort:false,
+	    fitColumns:true,
+	    pagination:true,
+	    rownumbers:true,
+	    pageSize:20,
+	    pageList:[10,15,20,30,40,50],
+	    columns:[[   
+	        {checkbox:true},   
+	        {field:'cid',title:'班级编号',width:100,align:'center',sortable:true},   
+	        {field:'cname',title:'班级名称',width:150,align:'center',editor:{type:"text",options:{required:true}}},   
+	        {field:'mid',title:'所属专业',width:150,align:'center',formatter:function(val,row,index){
+	        	for(var i=0,len=majorDataInfo.length;i<len;i++){
+	        		if(majorDataInfo[i].mid==val){
+	        			return majorDataInfo[i].mname;
+	        		}
+	        	}
+	        },editor:{type:"combobox",options:{required:true,valueField:"mid",textField:"mname",data:majorDataInfo}}},
+	        {field:'grade',title:'入学年份',width:100,align:'center',sortable:true,editor:{type:"text",options:{required:true}}}, 
+	        {field:'length',title:'学制',width:100,align:'center',formatter:function(val,row,index){
+	        	for(var i=0,len=lengthInfo.length;i<len;i++){
+	        		if(lengthInfo[i].id==val){
+	        			return lengthInfo[i].name;
+	        		}
+	        	}
+	        },editor:{type:"combobox",options:{required:true,valueField:"id",textField:"name",data:lengthInfo}}},
+	    ]],
+	    toolbar:"#classes_search"
+	}); 
+}
+
+
+function addClassesInfo(){
+	if(classesEditRow==undefined){ //说明没有行正在编辑
+		//添加一行
+		classesDataGridObject.datagrid('insertRow',{index:0,row:{}});
+		//开启编辑这一行
+		classesDataGridObject.datagrid("beginEdit",0);
+		classesEditRow=0;
+		classesOp="addClassesInfo";
+		classesFlag="添加";
+	}
+}
+
+function updateClassesInfo(){
+	if(classesEditRow==undefined){ //说明没有行正在编辑
+		//获取要修改的行
+		var row=classesDataGridObject.datagrid("getChecked")[0];
+		if(row==undefined){
+			$.messager.show({title:'温馨提示',msg:'请选择您要修改的数据...',timeout:3000,showType:'slide'});
+			return;
+		}
+		//获取选中的行的索引
+		classesEditRow=classesDataGridObject.datagrid("getRowIndex",row);
+		
+		//开启编辑这一行
+		classesDataGridObject.datagrid("beginEdit",classesEditRow);
+		classesOp="updateClassesInfo";
+		classesFlag="修改";
+	}
+}
+
+function saveClassesInfo(){
+	if(classesEditRow!=undefined){
+		//结束编辑
+		classesDataGridObject.datagrid("endEdit",classesEditRow);
+		//获取用户编辑的数据
+		var row=classesDataGridObject.datagrid("getChanges")[0];
+		if(row!=undefined){
+			row["op"]=classesOp;
+			$.post("../../classInfo",row,function(data){
+				data=parseInt($.trim(data));
+				if (data==-1){
+					$.messager.alert('失败提示','你输入的班级信息不完整，请完善后再提交...','error');
+					classesDataGridObject.datagrid("rejectChanges");
+				} else if (data>0){
+					$.messager.show({title:'成功提示',msg:'班级信息' + classesFlag + '成功...',timeout:3000,showType:'slide'});
+					classesDataGridObject.datagrid("reload");
+				}else{
+					classesDataGridObject.datagrid("rejectChanges");
+					$.messager.alert('失败提示','班级信息'+classesFlag+'失败...','error');
+				}
+				row=null;
+				classesEditRow=undefined;
+			},"text");
+		}
+	}
+}
+
+function goBackClasses(){
+	row=null;
+	classesEditRow=undefined;
+	classesDataGridObject.datagrid("rejectChanges");
+}
+
+function searchClassesInfo(){
+	var mid=$.trim( $("#classes_search_mid").val() );
+	var grade=$.trim( $("#classes_search_grade").val() );
+	var length=$.trim( $("#classes_search_length").val() );
+	
+	$('#classes_info').datagrid({
+		url:"../../classInfo",
+		queryParams:{op:'findByCondition',mid:mid, grade:grade, length:length}
+	});
+}
+</script>

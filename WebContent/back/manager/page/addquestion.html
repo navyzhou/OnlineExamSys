@@ -1,0 +1,263 @@
+<style>
+.addquestion_ul{
+	list-style-type:none;
+	width:100%;
+	margin-left:0px;
+	padding-left:0px;
+}
+
+.addquestion_ul>li{
+	width:33%;
+	float: left;
+	height:40px;
+}
+
+.addquestion_ul>li>.navy_label{
+	width:80px;
+	text-align:right;
+	display: inline-block;
+	margin-left:0px;
+}
+
+.addquestion_excel{
+	margin:0px auto;
+	width:100%;
+}
+
+.addquestion_excel>fieldset{
+	margin-left:20px;
+	padding:20px;
+	width:90%;
+	margin-top:20px;
+}
+
+.addquestion_ul>.questioninfo{
+	width:100%;
+}
+
+.addquestion_ul .navy_input{
+	width:80%;
+}
+
+.addquestion_ul .navy_select{
+	width:200px;
+}
+
+.questiontype2, .questiontype3, .questiontype4{
+	display:none;
+}
+
+</style>
+<form id="addquestion_form">
+<ul class="addquestion_ul">
+	<li>
+		<label class="navy_label">学期：</label>
+		<select id="addquestion_semester" class="navy_select" onchange="addquestion_changecourse(this.value)">
+			<option value="">--请选择--</option>
+		</select>
+	</li>
+	<li>
+		<label class="navy_label">课程：</label>
+		<select id="addquestion_cid" class="navy_select">
+			<option value="">--请选择--</option>
+		</select>
+	</li>
+	<li>
+		<label class="navy_label">题型：</label>
+		<select id="addquestion_tid" class="navy_select" onchange="addquestion_changetype(this.value)">
+		</select>
+	</li>
+	<li class="questioninfo">
+		<label class="navy_label">题目：</label>
+		<input type="text" class="navy_input" id="addquestion_qname" />
+	</li>
+	<li class="questioninfo questiontype">
+		<label class="navy_label">选项A：</label>
+		<input type="text" class="navy_input" id="addquestion_ans1" />
+	</li>
+	<li class="questioninfo questiontype">
+		<label class="navy_label">选项B：</label>
+		<input type="text" class="navy_input" id="addquestion_ans2" />
+	</li>
+	<li class="questioninfo questiontype">
+		<label class="navy_label">选项C：</label>
+		<input type="text" class="navy_input" id="addquestion_ans3" />
+	</li>
+	<li class="questioninfo questiontype">
+		<label class="navy_label">选项D：</label>
+		<input type="text" class="navy_input" id="addquestion_ans4" />
+	</li>
+	<li class="questioninfo questiontype1">
+		<label class="navy_label">正确答案：</label>
+		<input type="radio" name="ansr" value="A" />A &nbsp;&nbsp;&nbsp;&nbsp;
+		<input type="radio" name="ansr" value="B" />B &nbsp;&nbsp;&nbsp;&nbsp;
+		<input type="radio" name="ansr" value="C" />C &nbsp;&nbsp;&nbsp;&nbsp;
+		<input type="radio" name="ansr" value="D" />D &nbsp;&nbsp;&nbsp;&nbsp;
+	</li>
+	<li class="questioninfo questiontype2">
+		<label class="navy_label">正确答案：</label>
+		<input type="checkbox" name="ansc" value="A" />A &nbsp;&nbsp;&nbsp;&nbsp;
+		<input type="checkbox" name="ansc" value="B" />B &nbsp;&nbsp;&nbsp;&nbsp;
+		<input type="checkbox" name="ansc" value="C" />C &nbsp;&nbsp;&nbsp;&nbsp;
+		<input type="checkbox" name="ansc" value="D" />D &nbsp;&nbsp;&nbsp;&nbsp;
+	</li>
+	<li class="questioninfo questiontype3">
+		<label class="navy_label">正确答案：</label>
+		<input type="radio" name="ansp" value="1" />正确 &nbsp;&nbsp;&nbsp;&nbsp;
+		<input type="radio" name="ansp" value="0" />错误 &nbsp;&nbsp;&nbsp;&nbsp;
+	</li>
+	<li class="questioninfo questiontype4">
+		<label class="navy_label">正确答案：</label>
+		<input type="text" name="ans" class="navy_input" id="addquestion_ans" />
+	</li>
+	<li class="questioninfo"  style="text-align: center">
+		<a href="javascript:addQuestionInfo()" class="easyui-linkbutton" data-options="iconCls:'icon-user-add'">添加</a>
+	</li>
+</ul>
+</form>
+<div class="addquestion_excel">
+	<fieldset>
+		<legend>批量导入题目</legend>
+		<form id="addquestion_form_excel">
+			<label class="navy_label">请选择文件：</label>
+			<input type="file" accept="application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" name="addquestion_excel" id="addquestion_excel_file" />
+			<a href="javascript:addQuestionInfoForExcel()" class="easyui-linkbutton" data-options="iconCls:'icon-page-white-excel'">批量导入</a>
+			<a href="../../excel/questions.xls" title="点击下载题目表格模板" class="easyui-linkbutton" data-options="iconCls:'icon-page-excel'">下载表格模板</a>
+		</form>
+	</fieldset>
+</div>
+<script>
+var addquestion_courseInfo;
+	
+$(function(){
+	var gradeInfo="";
+	for(var i = 1;i <= 10;i++){
+		gradeInfo += "<option value='" + i + "'>第 " + i + " 学期</option>";
+	}
+	
+	$("#addquestion_semester").append($(gradeInfo));
+	
+	$.post("../../question",{op:"getInfos"},function(data) {
+		var str = "";
+		$.each(data.questionTypes, function(index, item) {
+			str += "<option value='" + item.tid + "'>" + item.tname + "</option>";
+		});
+		$("#addquestion_tid").append($(str));
+		
+		addquestion_courseInfo = data.courseInfos;
+	},"json");
+})
+
+
+function addquestion_changecourse(sid){
+	$("#addquestion_cid")[0].length = 1;
+	var str = "";
+	$.each(addquestion_courseInfo,function(index,item){
+		if (sid == item.semester){
+			str += "<option value='" + item.cid + "'>" + item.cname + "</option>";
+		}
+	})
+	$("#addquestion_cid").append($(str));
+}
+
+function addquestion_changetype(tid){
+	if (tid == "1") { // 说明是单选
+		$(".questiontype,.questiontype1").css("display", "block");
+		$(".questiontype2,.questiontype3,.questiontype4").css("display", "none");
+	} else if (tid == "2") { // 说明是多选
+		$(".questiontype,.questiontype2").css("display", "block");
+		$(".questiontype1,.questiontype3,.questiontype4").css("display", "none");
+	} else if (tid == "3") { // 说明是判断
+		$(".questiontype3").css("display", "block");
+		$(".questiontype,.questiontype1,.questiontype2,.questiontype4").css("display", "none");
+	} else if (tid == "4") { // 说明是填空
+		$(".questiontype4").css("display", "block");
+		$(".questiontype,.questiontype1,.questiontype3,.questiontype2").css("display", "none");
+	}
+}
+
+
+function addQuestionInfoForExcel(){
+	var fl = $("#addquestion_excel_file")[0].value;
+	if ( !fl ){
+		$.messager.show({title:'温馨提示',msg:'请选择要导入的文件..',timeout:3000,showType:'slide'});
+		return;
+	}
+	
+	var patter = /(.xls)|(.xlsx)/ig;
+	if( !patter.test(fl) ){
+		$.messager.show({title:'温馨提示',msg:'您选择的文件格式有误，请重新选择..',timeout:3000,showType:'slide'});
+		return;
+	}
+
+	$.ajaxFileUpload({
+		url:"../../question?op=addQuestions",
+		secureuri:false,
+		fileElementId:"addquestion_excel_file",
+		dataType:"txt",
+		success:function(data,status){
+			data=parseInt($.trim(data));
+			if(data == -1){
+				$.messager.show({title:'温馨提示',msg:'请选择要导入的文件..',timeout:3000,showType:'slide'});
+			} else if (data > 0){
+				$.messager.show({title:'成功提示',msg:'试题信息批量导入成功...',timeout:3000,showType:'slide'});
+				$("#addquestion_form_excel")[0].reset();
+			}else{
+				$.messager.alert('失败提示','试题信息批量导入失败...','error');
+			}
+		},
+		error:function(data,status,e){
+			$.messager.alert('失败提示','试题信息批量导入失败...\n'+e,'error');
+		}
+	})
+}
+
+
+function addQuestionInfo(){
+	var cid = $.trim($("#addquestion_cid").val());
+	if (cid == ""){
+		$.messager.show({title:'温馨提示',msg:'请选择试题课程..',timeout:3000,showType:'slide'});
+		return;
+	}
+	var tid = $.trim($("#addquestion_tid").val());
+	if (tid == ""){
+		$.messager.show({title:'温馨提示',msg:'请选择试题类型..',timeout:3000,showType:'slide'});
+		return;
+	}
+	var qname = $.trim($("#addquestion_qname").val());
+	if (qname == ""){
+		$.messager.show({title:'温馨提示',msg:'请输入试题名称..',timeout:3000,showType:'slide'});
+		return;
+	}
+	var ans1 = $.trim($("#addquestion_ans1").val());
+	var ans2 = $.trim($("#addquestion_ans2").val());
+	var ans3 = $.trim($("#addquestion_ans3").val());
+	var ans4 = $.trim($("#addquestion_ans4").val());
+	
+	var ans = "";
+	if (tid == "1") {
+		ans = $("input:radio[name='ansr']:checked").val();
+	} else if (tid == "2") {
+		$("input:checkbox[name='ansc']:checked").each(function(index, item) {
+			ans += item.value;
+		});
+	} else if (tid == "3") {
+		ans = $("input:radio[name='ansp']:checked").val();
+	} else if (tid == "4") {
+		ans = $.trim($("#addquestion_ans").val());
+	}
+	
+	$.post("../../question",{op:"addQuestionfo",tid:tid, cid:cid, qname:qname, ans1:ans1, ans2:ans2, ans3:ans3, ans4:ans4, ans:ans},function(data){
+		data=parseInt($.trim(data));
+		if(data == -1){
+			$.messager.show({title:'温馨提示',msg:'您输入的试题信息不完整，请确认后重新提交..',timeout:3000,showType:'slide'});
+		} else if (data > 0){
+			$.messager.show({title:'成功提示',msg:'试题信息添加成功...',timeout:3000,showType:'slide'});
+			$("#addquestion_form")[0].reset();
+		}else{
+			$.messager.alert('失败提示','试题信息添加失败...','error');
+		}
+	});
+}
+
+</script>

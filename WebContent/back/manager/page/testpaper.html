@@ -1,0 +1,263 @@
+<table id="testpaper_info" data-options="fit:true"></table> 
+
+<div id="testpaper_search" style="height:28px;">
+	<label class="navy_label">专业：</label>
+	<select id="testpaper_search_mid" class="navy_select" onchange="testpaper_updateClassInfos()">
+		<option value="">--请选择--</option>
+	</select>
+	<label class="navy_label">年级：</label>
+	<select id="testpaper_search_grade" class="navy_select" onchange="testpaper_updateClassInfo()">
+		<option value="">--请选择--</option>
+	</select>
+	<label class="navy_label">班级：</label>
+	<select id="testpaper_search_cid" class="navy_select">
+		<option value="">--请选择--</option>
+	</select>
+	<label class="navy_label">学期：</label>
+	<select id="testpaper_search_semester" class="navy_select" onchange="testpaper_updateCourseInfo(this.value)">
+		<option value="">--请选择--</option>
+		<option value="1"> 第 01 学期 </option>
+		<option value="2"> 第 02 学期 </option>
+		<option value="3"> 第 03 学期 </option>
+		<option value="4"> 第 04 学期 </option>
+		<option value="5"> 第 05 学期 </option>
+		<option value="6"> 第 06 学期 </option>
+		<option value="7"> 第 07 学期 </option>
+		<option value="8"> 第 08 学期 </option>
+		<option value="9"> 第 09 学期 </option>
+		<option value="10"> 第 10 学期 </option>
+	</select>
+	<label class="navy_label">课程：</label>
+	<select id="testpaper_search_courseId" class="navy_select">
+		<option value="">--请选择--</option>
+	</select>
+	<label class="navy_label">试卷状态：</label>
+	<select id="testpaper_search_status" class="navy_select">
+		<option value="0">--请选择--</option>
+		<option value="1"> 未考 </option>
+		<option value="2"> 考中 </option>
+		<option value="3"> 已考 </option>
+		<option value="4"> 已阅 </option>
+	</select>
+	&nbsp;&nbsp;&nbsp;&nbsp;<a href="javascript:searchTestPaperInfo()" class="easyui-linkbutton" data-options="iconCls:'icon-user-magnify'">查询</a>
+</div>
+
+<script>
+var testpaper_classInfo;
+var testpaper_courseInfo;
+var testpapre_status = ["","未考","考中","已考","已阅"];
+
+$(function(){
+	var year=new Date().getFullYear();
+	var gradeInfo="";
+	for(var i = year;i >= 2000;i--){
+		gradeInfo += "<option value='"+i+"'>"+i+"年</option>";
+	}
+	$("#testpaper_search_grade").append($(gradeInfo));
+	
+	$.post("../../testPaper",{op:"getInfos"},function(data){
+		testpaper_classInfo = data.classInfos;
+		testpaper_courseInfo = data.courseInfos;
+		var strInfo = "";
+		$.each(data.majors,function(index,item){
+			strInfo += "<option value='" + item.mid + "'>" + item.mname + "</option>";
+		});
+		$("#testpaper_search_mid").append($(strInfo));
+		
+		var str = "";
+		$.each(testpaper_courseInfo,function(index,item){
+			str += "<option value='" + item.cid + "'>" + item.cname + "</option>";
+		})
+		$("#testpaper_search_courseId").append($(str));
+		
+		testpaper_showData();
+	},"json");
+})
+
+// 选择专业时，修改班级信息列表
+function testpaper_updateClassInfos(){
+	var mid = $("#testpaper_search_mid").val();
+	$("#testpaper_search_cid")[0].length = 1;
+	var str = "";
+	$.each(testpaper_classInfo,function(index,item){
+		if (mid == item.mid){
+			str += "<option value='" + item.cid + "'>" + item.cname + "</option>";
+		}
+	})
+	$("#testpaper_search_cid").append($(str));
+}
+
+// 修改年级时，根据专业和年级修改班级信息列表
+function testpaper_updateClassInfo(){
+	var mid = $("#testpaper_search_mid").val();
+	var gid = $("#testpaper_search_grade").val();
+	$("#testpaper_search_cid")[0].length = 1;
+	var str = "";
+	$.each(testpaper_classInfo,function(index,item){
+		if (gid == ""){ // 意味着没有选择年级
+			if (mid == item.mid){
+				str += "<option value='" + item.cid + "'>" + item.cname + "</option>";
+			}
+		} else {
+			if (mid == item.mid && item.grade == gid){
+				str += "<option value='" + item.cid + "'>" + item.cname + "</option>";
+			}
+		}
+	})
+	$("#testpaper_search_cid").append($(str));
+}
+
+function testpaper_showData(){
+	$('#testpaper_info').datagrid({   
+	    url:'../../testPaper',   //这个表格中数据的来源  
+	    queryParams:{op:"findByPage"},
+	    striped:true,
+	    nowrap:true,
+	    loadMsg:"数据加载中...",
+	    sortName:"pid",
+	    remoteSort:false,
+	    fitColumns:true,
+	    pagination:true,
+	    rownumbers:true,
+	    pageSize:20,
+	    pageList:[10,15,20,30,40,50],
+	    columns:[[   
+	        {field:'pid',title:'试卷编号',width:100,align:'center',sortable:true},   
+	        {field:'pname',title:'试卷名称',width:200,align:'center'},   
+	        {field:'cid',title:'考试课程',width:100,align:'center',formatter:function(val,row,index) {
+	        	for (var i=0, len=testpaper_courseInfo.length; i<len; i++){
+	        		if(testpaper_courseInfo[i].cid == val){
+	        			return testpaper_courseInfo[i].cname;
+	        		}
+	        	}
+	        }},   
+	        {field:'cids',title:'考试班级',width:300,align:'center',formatter:function(val,row,index) {
+	        	var obj;
+	        	if (val.indexOf(",")>0){
+	        		var vals = val.split(",");
+	        		var str="";
+	        		for (var i=0,len=testpaper_classInfo.length; i<len; i++){
+	            		obj = testpaper_classInfo[i];
+	            		for (var j=0,lens=vals.length; j<lens; j++){
+	            			if (obj.cid == vals[j]){
+	                			str += obj.cname +",";
+	                		}
+	            		}
+	            	}
+	        		str=str.substring(0,str.lastIndexOf(","));
+	        		return str;
+	        	} else {
+	        		for (var i=0,len=testpaper_classInfo.length; i<len; i++){
+	            		obj = testpaper_classInfo[i];
+	            		if (obj.cid == val){
+	            			return obj.cname;
+	            		}
+	            	}
+	        	}
+	        	
+	        }},   
+	        {field:'testTime',title:'开考时间',width:120,align:'center'},   
+	        {field:'longExam',title:'考试时长',width:60,align:'center',formatter:function(val,row,index) {
+	        	return val+"分钟";
+	        }},   
+	        {field:'status',title:'试卷状态',width:50,align:'center',formatter:function(val,row,index) {
+	        	return testpapre_status[val];
+	        }},   
+	        {field:'_operation',title:'操作',width:200,align:'center',formatter:function(val,row,index){
+	        	var str = '<a href="../../testPaper?op=showTestPaper&pid='+row.pid+'"  target="_blank" class="navy-icon-page-white-text">详细</a>';
+	        	if (row.status == "1"){
+	        		str += '<a href="javascript:deleteTestPaperByPid(\''+row.pid+'\')" class="navy-icon-page-cancel">删除</a>';
+	        		str += '<a href="javascript:updateTestPaperStatusByPid(\''+row.pid+'\',2)" class="navy-icon-page-edit">开考</a>';
+	        	} else if (row.status == "2"){
+	        		str += '<a href="javascript:updateTestPaperStatusByPid(\''+row.pid+'\',3)" class="navy-icon-page-key">已考</a>';
+	        	} else if (row.status == "3"){
+	        		str += '<a href="javascript:updateTestPaperStatusByPids(\''+row.pid+'\',4)" class="navy-icon-page-portrait">阅卷</a>';
+	        	}
+	       		return str;
+	        }}
+	    ]],
+	    toolbar:"#testpaper_search"
+	}); 
+}
+
+// 当修改学期时，自动修改课程信息列表
+function testpaper_updateCourseInfo(sid){
+	$("#testpaper_search_courseId")[0].length = 1;
+	var str = "";
+	$.each(testpaper_courseInfo,function(index,item){
+		if (sid == ""){ // 意味着没有选择年级
+			str += "<option value='" + item.cid + "'>" + item.cname + "</option>";
+		} else {
+			if (item.semester == sid){
+				str += "<option value='" + item.cid + "'>" + item.cname + "</option>";
+			}
+		}
+	})
+	$("#testpaper_search_courseId").append($(str));
+}
+
+function updateTestPaperStatusByPid(pid,status){
+	if( status == 2) {
+		$.messager.confirm('确认操作', '您确定要开考此套试题吗?', function(r){
+			if (r) {
+				updateTestPaperStatusByPids(pid,status);
+			}
+		});
+	} else if ( status == 3) {
+		$.messager.confirm('确认操作', '您确定要试卷状态改成已考吗?一旦修改未进入考试的学生将不能再进入考试。', function(r){
+			if (r) {
+				updateTestPaperStatusByPids(pid,status);
+			}
+		});
+	}
+}
+
+function updateTestPaperStatusByPids(pid,status){
+	$.post("../../testPaper",{op:"changeTestPaperStatus",pid:pid,status:status},function(data) {
+		data = parseInt( $.trim(data) );
+		if(data == -1){
+			$.messager.show({title:'温馨提示',msg:'网络出现问题，请稍后重试..',timeout:3000,showType:'slide'});
+		} else if (data > 0){
+			$.messager.show({title:'成功提示',msg:'试卷状态修改成功...',timeout:3000,showType:'slide'});
+			$('#testpaper_info').datagrid("reload")
+		}else{
+			$.messager.alert('失败提示','试卷状态修改失败...','error');
+		}
+	},"text");
+}
+
+// 删除试卷
+function deleteTestPaperByPid(pid){
+	$.messager.confirm('确认操作', '试卷一旦删除将不能恢复，您确定要删除此套试题吗?', function(r){
+		$.post("../../testPaper",{op:"deleteTestPaper",pid:pid},function(data) {
+			data = parseInt( $.trim(data) );
+			if(data == -1){
+				$.messager.show({title:'温馨提示',msg:'网络出现问题，请稍后重试..',timeout:3000,showType:'slide'});
+			} else if (data > 0){
+				$.messager.show({title:'成功提示',msg:'试卷信息删除成功...',timeout:3000,showType:'slide'});
+				$('#testpaper_info').datagrid("reload")
+			}else{
+				$.messager.alert('失败提示','试卷信息删除失败...','error');
+			}
+		},"text");
+	});
+}
+
+function searchTestPaperInfo(){
+	var mid=$.trim($("#testpaper_search_mid").val());
+	var grade=$.trim($("#testpaper_search_grade").val());
+	var cid=$.trim($("#testpaper_search_cid").val());
+	var semester=$.trim($("#testpaper_search_semester").val());
+	var courseId=$.trim($("#testpaper_search_courseId").val());
+	var status=$.trim($("#testpaper_search_status").val());
+	
+	if ( (mid!="" || grade!="") && cid==""){
+		$.messager.show({title:'温馨提示',msg:'请选择班级...',timeout:3000,showType:'slide'});
+	}
+	
+	$('#testpaper_info').datagrid({
+		url:"../../testPaper",
+		queryParams:{op:'findByCondition',mid:mid, grade:grade, cid:cid, semester:semester, courseId:courseId, status:status}
+	});
+}
+</script>

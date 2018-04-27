@@ -1,0 +1,23 @@
+<table id="roles_info" data-options="fit:true"></table> 
+
+<script>
+$('#roles_info').datagrid({   
+    url:'../../roleInfo',   //这个表格中数据的来源  
+    queryParams:{op:"findByPage"},
+    striped:true,
+    nowrap:true,
+    loadMsg:"数据加载中...",
+    sortName:"rid",
+    remoteSort:false,
+    fitColumns:true,
+    pagination:true,
+    rownumbers:true,
+    pageSize:15,
+    pageList:[10,15,20,30,40,50],
+    columns:[[   
+        {checkbox:true},   
+        {field:'rid',title:'角色编号',width:100,align:'center',sortable:true},   
+        {field:'rname',title:'角色名称',width:200,align:'center'}
+    ]]
+}); 
+</script>

@@ -1,0 +1,43 @@
+<table id="grade_info" data-options="fit:true"></table> 
+
+<script>
+$('#grade_info').datagrid({   
+    url:'../answerSheet',   //这个表格中数据的来源  
+    queryParams:{op:"findAnswerBySid"},
+    striped:true,
+    nowrap:true,
+    loadMsg:"数据加载中...",
+    sortName:"pid",
+    remoteSort:false,
+    fitColumns:true,
+    pagination:true,
+    rownumbers:true,
+    pageSize:15,
+    pageList:[10,15,20,30,40,50],
+    columns:[[   
+        {field:'pid',title:'试卷编号',width:150,align:'center'},
+        {field:'pname',title:'考试课程',width:200,align:'center'},
+        {field:'sname',title:'学期',width:100,align:'center',formatter:function(val,row,index) {
+        	return "第"+val+"学期";
+        }},
+        {field:'score',title:'分数',width:100,align:'center',formatter:function(val,row,index){
+        	if ($.trim(val) == "" || $.trim(val) == "0" ) {
+         		return "<font color='red'>缺考</font>";
+         	} else if(parseInt(val)<60){
+        		return "<font color='red'>"+val+"</font>";
+        	} else{
+        		return "<font color='green'>"+val+"</font>";
+        	}
+        }},
+        {field:'_operation',title:'操作',width:200,align:'center',formatter:function(val,row,index){
+        	var str="";
+        	if (row.status == "4"){
+        		str += '<a href="../answerSheet?op=showAnswer&aid='+row.aid+'&t='+new Date().getTime()+'" target="_blank" class="navy-icon-page-edit">查看答卷</a>';
+        	} else {
+        		return "阅卷中";
+        	} 
+       		return str;
+        }}
+    ]]
+}); 
+</script>

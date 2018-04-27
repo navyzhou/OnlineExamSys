@@ -1,0 +1,289 @@
+<style>
+.addTestpaper_ul{
+	list-style-type:none;
+	width:100%;
+	margin-left:0px;
+	padding-left:0px;
+	height:220px;
+}
+
+.addTestpaper_ul>li{
+	width:33%;
+	float: left;
+	line-height:40px;
+	height:40px;
+}
+
+.addTestpaper_ul>li>.navy_label{
+	width:120px;
+	text-align:right;
+	display: inline-block;
+	margin-left:0px;
+}
+
+.addTestpaper_ul>.test_paper_question{
+	width:40%;
+	text-align:center;
+}
+
+.addTestpaper_ul>.test_paper_question>.navy_label{
+	width:120px;
+}
+
+.addTestpaper_ul>.test_paper_question span{
+	margin-left:10px;
+}
+</style>
+<form id="addTestPaper_form">
+<ul class="addTestpaper_ul">
+	<li>
+		<label class="navy_label">考试专业：</label>
+		<select id="addTestpaper_mid" class="navy_select" onchange="addTestpaper_updateClassInfos(this.value)">
+			<option value="">--请选择--</option>
+		</select>
+	</li>
+	<li>
+		<label class="navy_label">考试年级：</label>
+		<select id="addTestpaper_grade" class="navy_select" onchange="addTestpaper_updateClassInfo()">
+			<option value="">--请选择--</option>
+		</select>
+	</li>
+	<li>
+		<label class="navy_label">考试班级：</label>
+		<select id="addTestpaper_class" class="navy_select">
+			<option value="">--请选择--</option>
+		</select>
+	</li>
+	<li>
+		<label class="navy_label">考试课程：</label>
+		<select id="addTestpaper_cid" class="navy_select" onchange="addTestPaper_updateQuestionNum(this.value)">
+			<option value="">--请选择--</option>
+		</select>
+	</li>
+	<li>
+		<label class="navy_label">开考时间：</label>
+		<input id="addTestpaper_testTime" class="easyui-datetimebox" data-options="required:true,showSeconds:false" style="width:150px">
+	</li>
+	<li>
+		<label class="navy_label">考试时长：</label>
+		<input type="number" class="navy_input" id="addTestpaper_longExam" style="width:60px"/>
+		<span>分钟（60~150分钟之间）</span>
+	</li>
+	<li style="width:100%">
+		<label class="navy_label">试卷名称：</label>
+		<input type="text" class="navy_input" id="addTestpaper_qname" style="width:85%"/>
+	</li>
+	<li class="test_paper_question">
+		<label class="navy_label">单选题题量：</label>
+		<input type="number" class="navy_input" min="0" id="addTestpaper_radio_num" style="width:60px" />
+		<span id="addTestpaper_radio_nums"></span>
+		<label class="navy_label">单选题分数：</label>
+		<input type="number" class="navy_input" min="1" id="addTestpaper_radio_score" style="width:60px" value="2"/>
+	</li>
+	<li class="test_paper_question">
+		<label class="navy_label">多选题题量：</label>
+		<input type="number" class="navy_input" min="0" id="addTestpaper_checkbox_num" style="width:60px"/>
+		<span id="addTestpaper_checkbox_nums"></span>
+		<label class="navy_label">多选题分数：</label>
+		<input type="number" class="navy_input" min="1" id="addTestpaper_checkbox_score" style="width:60px" value="3"/>
+	</li>
+	<li class="test_paper_question">
+		<label class="navy_label">判断题题量：</label>
+		<input type="number" class="navy_input" min="0" id="addTestpaper_judge_num" style="width:60px"/>
+		<span id="addTestpaper_judge_nums"></span>
+		<label class="navy_label">判断题分数：</label>
+		<input type="number" class="navy_input" min="1" id="addTestpaper_judge_score" style="width:60px" value="1"/>
+	</li>
+	<li class="test_paper_question">
+		<label class="navy_label">填空题题量：</label>
+		<input type="number" class="navy_input" min="0" id="addTestpaper_fill_num" style="width:60px"/>
+		<span id="addTestpaper_fill_nums"></span>
+		<label class="navy_label">填空题分数：</label>
+		<input type="number" class="navy_input" min="1" id="addTestpaper_fill_score" style="width:60px" value="1"/>
+	</li>
+</ul>
+</form>
+<div style="text-align:center; width:100%;clear: both;"><a href="javascript:addTestPaper()" class="easyui-linkbutton" data-options="iconCls:'icon-user-add'">智能组卷</a></div>
+<script>
+var addtestpaper_classInfo;
+var addtestpaper_courseInfo;
+	
+$(function(){
+	var year=new Date().getFullYear();
+	var gradeInfo="";
+	for(var i = year;i >= 2000;i--){
+		gradeInfo += "<option value='"+i+"'>"+i+"年</option>";
+	}
+	$("#addTestpaper_grade").append($(gradeInfo));
+	
+	$.post("../../testPaper",{op:"getInfos"},function(data){
+		addtestpaper_courseInfo = data.courseInfos;
+		addtestpaper_classInfo = data.classInfos;
+		var strInfo = "";
+		$.each(data.majors,function(index,item){
+			strInfo += "<option value='" + item.mid + "'>" + item.mname + "</option>";
+		});
+		$("#addTestpaper_mid").append($(strInfo));
+	},"json");
+})
+
+// 当专业发生改变时， 情况班级列表信息
+function addTestpaper_updateClassInfos(mid){
+	$("#addTestpaper_class")[0].length = 1;
+	$("#addTestpaper_grade")[0].onchange();
+}
+
+// 当年级发生改变时，自动获取该专业 该年级下的班级信息
+function addTestpaper_updateClassInfo(){
+	var mid = $("#addTestpaper_mid").val();
+	var gid = $("#addTestpaper_grade").val();
+	$("#addTestpaper_class")[0].length = 1;
+	$("#addTestpaper_cid")[0].length = 1;
+	var str = "";
+	$.each(addtestpaper_classInfo,function(index,item){
+		if (gid == ""){
+			if (mid == item.mid){
+				str += "<option value='" + item.cid + "'>" + item.cname + "</option>";
+			}
+		} else {
+			if (mid == item.mid && item.grade == gid){
+				str += "<option value='" + item.cid + "'>" + item.cname + "</option>";
+			}
+		}
+	})
+	$("#addTestpaper_class").append($(str));
+	
+	// 修改课程
+	var cstr = "";
+	var date = new Date();
+	var year = date.getFullYear();
+	var month = date.getMonth()+1;
+	
+	var sem = (year - parseInt(gid))*2 + (month > 8? 1:0);
+	$.each(addtestpaper_courseInfo, function(index, item){
+		if (item.semester == sem)	{
+			cstr += "<option value='" + item.cid + "'>" + item.cname + "</option>";
+		}
+	})
+	$("#addTestpaper_cid").append($(cstr));
+}
+
+// 当课程发生改变是，自动后去该课程下每个题型的题量
+function addTestPaper_updateQuestionNum(cid){
+	if (cid == "") { // 如果用户没有选中课程信息，则对应的题型题量显示为空
+		$("#addTestpaper_radio_nums, #addTestpaper_checkbox_num, #addTestpaper_judge_num, #addTestpaper_fill_nums").text("");
+	} else {
+		$.post("../../question",{op:"findQuestionNumByCid", cid:cid}, function(data) { // 根据课程编号获取该课程每种题型的题量
+			$.each(data, function(index ,item) {
+				if (item.tid == "1"){
+					$("#addTestpaper_radio_nums").text("(当前题量为 " + item.total + " 题)");
+				} else if (item.tid == "2"){
+					$("#addTestpaper_checkbox_nums").text("(当前题量为 " + item.total + " 题)");
+				} else if (item.tid == "3"){
+					$("#addTestpaper_judge_nums").text("(当前题量为 " + item.total + " 题)");
+				} else if (item.tid == "4"){
+					$("#addTestpaper_fill_nums").text("(当前题量为 " + item.total + " 题)");
+				}
+			});
+		},"json");
+	}
+}
+
+function addTestPaper(){
+	var cids = $.trim($("#addTestpaper_class").val());
+	
+	if (cids == "") { // 说明用没有选择班级，那么可能是针对整个专业的，那么就要获取这个专业下的所有班级
+		var mid = $.trim($("#addTestpaper_mid").val()); // 专业编号
+		var gid = $.trim($("#addTestpaper_grade").val()); // 年级编号
+		
+		if (mid == ""){
+			$.messager.show({title:'温馨提示',msg:'请选择专业..',timeout:3000,showType:'slide'});
+			return;
+		}
+		
+		if (gid == ""){
+			$.messager.show({title:'温馨提示',msg:'请选择年级..',timeout:3000,showType:'slide'});
+			return;
+		}
+		
+		$.each(addtestpaper_classInfo,function(index,item){
+			if (mid == item.mid && item.grade == gid){
+				cids += item.cid + ",";
+			}
+		})
+		
+		if (cids =="" ){ // 说明没有对应的班级
+			$.messager.show({title:'温馨提示',msg:'该专业该年级没有开班...',timeout:3000,showType:'slide'});
+			return;
+		}
+		cids = cids.substring(0,cids.length-1);
+	}
+	
+	
+	var cid = $.trim($("#addTestpaper_cid").val()); // 课程编号
+	
+	if (cid == ""){
+		$.messager.show({title:'温馨提示',msg:'请选择课程..',timeout:3000,showType:'slide'});
+		return;
+	}
+	
+	var testTime = $("#addTestpaper_testTime").datebox("getValue");
+	if (testTime == ""){
+		$.messager.show({title:'温馨提示',msg:'请选择开考时间..',timeout:3000,showType:'slide'});
+		return;
+	}
+	
+	var longexam = $.trim($("#addTestpaper_longExam").val());
+	if (longexam == ""){
+		$.messager.show({title:'温馨提示',msg:'请输入考试时长..',timeout:3000,showType:'slide'});
+		return;
+	}
+	
+	if (parseInt(longexam) < 60 || parseInt(longexam) > 150){
+		$.messager.show({title:'温馨提示',msg:'考试时长必须在 60分钟 到 150 分钟之间...',timeout:3000,showType:'slide'});
+		return;
+	}
+	
+	var qname = $.trim($("#addTestpaper_qname").val());
+	if (qname == ""){
+		$.messager.show({title:'温馨提示',msg:'请输入试卷名称..',timeout:3000,showType:'slide'});
+		return;
+	}
+	
+	var rnum = $.trim($("#addTestpaper_radio_num").val());
+	var rscor = $.trim($("#addTestpaper_radio_score").val());
+	
+	var cnum = $.trim($("#addTestpaper_checkbox_num").val());
+	var cscor = $.trim($("#addTestpaper_checkbox_score").val());
+	
+	var jnum = $.trim($("#addTestpaper_judge_num").val());
+	var jscor = $.trim($("#addTestpaper_judge_score").val());
+	
+	var fnum = $.trim($("#addTestpaper_fill_num").val());
+	var fscor = $.trim($("#addTestpaper_fill_score").val());
+	var total = rnum * rscor + cnum * cscor + jnum * jscor + fnum * fscor;
+	
+	if(total != 100) {
+		$.messager.show({title:'温馨提示',msg:'试卷当前总分为  ' + total + ', 请修改成100后再重新提交...',timeout:3000,showType:'slide'});
+		return;
+	}
+	
+	var score = "1-" + rscor + ";2-" + cscor + ";3-" + jscor + ";4-" + fscor;
+
+	// 发送自动组卷的请求
+	$.post("../../testPaper",{op:"addTestPaper", qname:qname, cid:cid, testTime:testTime, longExam:longexam, cids:cids, score:score, rnum:rnum, cnum:cnum, jnum:jnum, fnum:fnum}, function(data){
+		data=parseInt($.trim(data));
+		if(data == -1){
+			$.messager.show({title:'温馨提示',msg:'题量不足，请重新组卷..',timeout:3000,showType:'slide'});
+		} else if (data > 0){
+			$.messager.show({title:'成功提示',msg:'智能组卷成功，请在试卷维护中查看或维护...',timeout:3000,showType:'slide'});
+			$("#addTestPaper_form")[0].reset();
+		}else{
+			$.messager.alert('失败提示','智能组卷失败，请稍后重试或联系管理员...','error');
+		}
+	},"text");
+	
+	
+}
+
+</script>

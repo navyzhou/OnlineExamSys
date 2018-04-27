@@ -1,0 +1,212 @@
+<table id="question_info" data-options="fit:true"></table> 
+
+<div id="question_search" style="height:28px;">
+	<a href="javascript:updateQuestion()" class="easyui-linkbutton" data-options="iconCls:'icon-page-edit',plain:true" style="float:left">修改</a>
+	<div class="datagrid-btn-separator"></div>
+	<a href="javascript:saveQuestion()" class="easyui-linkbutton" data-options="iconCls:'icon-page-save',plain:true" style="float:left">保存</a>
+	<div class="datagrid-btn-separator"></div>
+	<a href="javascript:goBackQuestion()" class="easyui-linkbutton" data-options="iconCls:'icon-undo',plain:true" style="float:left">撤销</a>
+	<div class="datagrid-btn-separator"></div>
+	<label class="navy_label">学期：</label>
+	<select id="question_search_semester" class="navy_select" onchange="question_updateCourseInfo(this.value)">
+		<option value="">--请选择--</option>
+		<option value="1"> 第 01 学期 </option>
+		<option value="2"> 第 02 学期 </option>
+		<option value="3"> 第 03 学期 </option>
+		<option value="4"> 第 04 学期 </option>
+		<option value="5"> 第 05 学期 </option>
+		<option value="6"> 第 06 学期 </option>
+		<option value="7"> 第 07 学期 </option>
+		<option value="8"> 第 08 学期 </option>
+		<option value="9"> 第 09 学期 </option>
+		<option value="10"> 第 10 学期 </option>
+	</select>
+	<label class="navy_label">课程：</label>
+	<select id="question_search_courseId" class="navy_select">
+		<option value="">--请选择--</option>
+	</select>
+	<label class="navy_label">题型：</label>
+	<select id="question_search_type" class="navy_select">
+		<option value="">--请选择--</option>
+	</select>
+	<label class="navy_label">题目名称：</label>
+	<input type="text" id="question_search_qname" class="navy_input" style="width:400px"/> 
+	&nbsp;&nbsp;&nbsp;&nbsp;<a href="javascript:searchQuestionInfo()" class="easyui-linkbutton" data-options="iconCls:'icon-page-find'">查询</a>
+</div>
+
+<script>
+var question_courseInfo;
+var question_questionTypesInfo;
+var questionEditRow=undefined;
+var questionDataGridObject;
+
+$(function(){
+	$.post("../../question",{op:"getInfos"},function(data){
+		question_courseInfo=data.courseInfos;
+		question_questionTypesInfo=data.questionTypes;
+		
+		var str = "";
+		$.each(data.courseInfos,function(index,item){
+			str += "<option value='" + item.cid + "'>" + item.cname + "</option>";
+		})
+		$("#question_search_courseId").append($(str));
+		
+		str="";
+		$.each(data.questionTypes,function(index,item){
+			str += "<option value='" + item.tid + "'>" + item.tname + "</option>";
+		})
+		$("#question_search_type").append($(str));
+		
+		question_showData();
+		
+	},"json");
+})
+
+// 修改年级时，根据专业和年级修改班级信息列表
+function question_updateCourseInfo(){
+	var semester = $("#question_search_semester").val();
+	$("#question_search_courseId")[0].length = 1;
+	var str = "";
+	$.each(question_courseInfo,function(index,item){
+		if (semester==""){
+			str += "<option value='" + item.cid + "'>" + item.cname + "</option>";
+		} else {
+			if (item.semester == semester) {
+				str += "<option value='" + item.cid + "'>" + item.cname + "</option>";
+			}
+		}
+	})
+	$("#question_search_courseId").append($(str));
+}
+
+function question_showData(){
+	questionDataGridObject=$('#question_info').datagrid({   
+	    url:'../../question',   //这个表格中数据的来源  
+	    queryParams:{op:"findByPage"},
+	    striped:true,
+	    nowrap:false,
+	    loadMsg:"数据加载中...",
+	    sortName:"qid",
+	    remoteSort:false,
+	    fitColumns:true,
+	    pagination:true,
+	    rownumbers:true,
+	    singleSelect:true,
+	    pageSize:10,
+	    pageList:[10,15,20,30,40,50],
+	    columns:[[  
+	        {checkbox:true},  
+	        {field:'qid',title:'试题编号',width:80,align:'center',sortable:true},   
+	        {field:'qname',title:'试题名称',width:200,align:'left',editor:{type:"text",options:{required:true}}},   
+	        {field:'cid',title:'所属课程',width:80,align:'center',formatter:function(val,row,index) {
+	        	for (var i=0, len=question_courseInfo.length; i<len; i++){
+	        		if(question_courseInfo[i].cid == val){
+	        			return question_courseInfo[i].cname;
+	        		}
+	        	}
+	        },editor:{type:"combobox",options:{required:true,valueField:"cid",textField:"cname",data:question_courseInfo}}},
+	        {field:'tid',title:'题目类型',width:60,align:'center',formatter:function(val,row,index) {
+	        	for (var i=0, len=question_questionTypesInfo.length; i<len; i++){
+	        		if(question_questionTypesInfo[i].tid == val){
+	        			return question_questionTypesInfo[i].tname;
+	        		}
+	        	}
+	        },editor:{type:"combobox",options:{required:true,valueField:"tid",textField:"tname",data:question_questionTypesInfo}}},   
+	        {field:'ans1',title:'A选项',width:100,align:'left',editor:{type:"text",options:{required:true}}},   
+	        {field:'ans2',title:'B选项',width:100,align:'left',editor:{type:"text",options:{required:true}}},   
+	        {field:'ans3',title:'C选项',width:100,align:'left',editor:{type:"text",options:{required:true}}},   
+	        {field:'ans4',title:'D选项',width:100,align:'left',editor:{type:"text",options:{required:true}}},   
+	        {field:'ans',title:'正确答案',width:100,align:'center',formatter:function(val,row,index){
+	        	if (row.tid =="3" && val =="0"){
+	        		return "错误";
+	        	} else if (row.tid=="3" && val =="1"){
+	        		return "正确";
+	        	} else {
+	        		return val;
+	        	}
+	        },editor:{type:"text",options:{required:true}}},
+	        {field:'_operation',title:'操作',width:60,align:'center',formatter:function(val,row,index){
+	        	return '<a href="javascript:questionDelete(\''+row.qid+'\')" class="navy-icon-page-cancel">删除</a>';
+	        }}
+	    ]],
+	    toolbar:"#question_search"
+	}); 
+}
+
+// 点击修改时
+function updateQuestion(){
+	if(questionEditRow==undefined){ //说明没有行正在编辑
+		//获取要修改的行
+		var row=questionDataGridObject.datagrid("getChecked")[0];
+		if(row == undefined){
+			$.messager.show({title:'温馨提示',msg:'请选择您要修改的数据...',timeout:3000,showType:'slide'});
+			return;
+		}
+		//获取选中的行的索引
+		questionEditRow=questionDataGridObject.datagrid("getRowIndex",row);
+		
+		//开启编辑这一行
+		questionDataGridObject.datagrid("beginEdit",questionEditRow);
+	}
+}
+
+// 点击保存时
+function saveQuestion(){
+	if(questionEditRow!=undefined){
+		//结束编辑
+		questionDataGridObject.datagrid("endEdit",questionEditRow);
+		//获取用户编辑的数据
+		var row=questionDataGridObject.datagrid("getChanges")[0];
+		row["op"]="updateQuestion";
+		if(row!=undefined){
+			$.post("../../question",row,function(data){
+				data=parseInt($.trim(data));
+				if(data>0){
+					$.messager.show({title:'成功提示',msg:'试题信息修改成功...',timeout:3000,showType:'slide'});
+					questionDataGridObject.datagrid("reload");
+				}else{
+					questionDataGridObject.datagrid("rejectChanges");
+					$.messager.alert('失败提示','试题信息修改失败...','error');
+				}
+				row=null;
+				questionEditRow=undefined;
+			},"text");
+		}
+	}
+}
+
+function questionDelete(qid){
+	$.post("../../question",{op:"deleteQuestion", qid:qid},function(data){
+		data=parseInt($.trim(data));
+		if(data==-2){
+			$.messager.show({title:'温馨提示',msg:'请选择您要删除的试题信息...',timeout:3000,showType:'slide'});
+			questionDataGridObject.datagrid("rejectChanges");
+		}else if(data==-1){
+			$.messager.show({title:'温馨提示',msg:'该试题已经被使用，不能删除，只能修改...',timeout:3000,showType:'slide'});
+			questionDataGridObject.datagrid("rejectChanges");
+		} else if(data>0){
+			$.messager.show({title:'成功提示',msg:'试题信息删除成功...',timeout:3000,showType:'slide'});
+			questionDataGridObject.datagrid("reload");
+		} else {
+			$.messager.alert('失败提示','试题信息删除失败，请稍后重试...','error');
+			questionDataGridObject.datagrid("rejectChanges");
+		}
+	},"text");
+}
+
+function searchQuestionInfo(){
+	var cid=$.trim( $("#question_search_courseId").val() );
+	var tid=$.trim( $("#question_search_type").val() );
+	var qname=$.trim( $("#question_search_qname").val() );
+	
+	$('#question_info').datagrid({
+		url:"../../question",
+		queryParams:{op:'findByCondition',cid:cid, tid:tid, qname:qname}
+	});
+}
+
+function goBackQuestion(){
+	questionEditRow=undefined;
+	questionDataGridObject.datagrid("rejectChanges");
+}
+</script>

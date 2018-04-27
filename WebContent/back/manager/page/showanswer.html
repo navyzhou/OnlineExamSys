@@ -1,0 +1,171 @@
+<table id="showanswer_info" data-options="fit:true"></table> 
+
+<div id="showanswer_search" style="height:28px;">
+	<label class="navy_label">专业：</label>
+	<select id="showanswer_search_mid" class="navy_select" onchange="showanswer_updateClassInfos()">
+		<option value="">--请选择--</option>
+	</select>
+	<label class="navy_label">年级：</label>
+	<select id="showanswer_search_grade" class="navy_select" onchange="showanswer_updateClassInfo()">
+		<option value="">--请选择--</option>
+	</select>
+	<label class="navy_label">班级：</label>
+	<select id="showanswer_search_cid" class="navy_select">
+		<option value="">--请选择--</option>
+	</select>
+	<label class="navy_label">学期：</label>
+	<select id="showanswer_search_semester" class="navy_select" onchange="showanswer_updateCourseInfo(this.value)">
+		<option value="">--请选择--</option>
+		<option value="1"> 第 01 学期 </option>
+		<option value="2"> 第 02 学期 </option>
+		<option value="3"> 第 03 学期 </option>
+		<option value="4"> 第 04 学期 </option>
+		<option value="5"> 第 05 学期 </option>
+		<option value="6"> 第 06 学期 </option>
+		<option value="7"> 第 07 学期 </option>
+		<option value="8"> 第 08 学期 </option>
+		<option value="9"> 第 09 学期 </option>
+		<option value="10"> 第 10 学期 </option>
+	</select>
+	<label class="navy_label">课程：</label>
+	<select id="showanswer_search_courseId" class="navy_select">
+		<option value="">--请选择--</option>
+	</select>
+	<label class="navy_label">学号：</label>
+	<input type="text" id="showanswer_search_sid" class="navy_input" style="width:100px"/> 
+	<label class="navy_label">姓名：</label>
+	<input type="text" id="showanswer_search_sname" class="navy_input" style="width:100px"/> 
+	&nbsp;&nbsp;&nbsp;&nbsp;<a href="javascript:searchAnswerSheetInfo()" class="easyui-linkbutton" data-options="iconCls:'icon-page-find'">查询</a>
+</div>
+
+<script>
+var showanswer_classInfo;
+var showanswer_courseInfo;
+
+$(function(){
+	var year=new Date().getFullYear();
+	var gradeInfo="";
+	for(var i = year;i >= 2000;i--){
+		gradeInfo += "<option value='"+i+"'>"+i+"年</option>";
+	}
+	$("#showanswer_search_grade").append($(gradeInfo));
+	
+	$.post("../../testPaper",{op:"getInfos"},function(data){
+		showanswer_classInfo = data.classInfos;
+		showanswer_courseInfo = data.courseInfos;
+		var strInfo = "";
+		$.each(data.majors,function(index,item){
+			strInfo += "<option value='" + item.mid + "'>" + item.mname + "</option>";
+		});
+		$("#showanswer_search_mid").append($(strInfo));
+		
+		var str = "";
+		$.each(showanswer_courseInfo,function(index,item){
+			str += "<option value='" + item.cid + "'>" + item.cname + "</option>";
+		})
+		$("#showanswer_search_courseId").append($(str));
+		
+		showanswer_showData();
+	},"json");
+})
+
+// 选择专业时，修改班级信息列表
+function showanswer_updateClassInfos(){
+	var mid = $("#showanswer_search_mid").val();
+	$("#showanswer_search_cid")[0].length = 1;
+	var str = "";
+	$.each(showanswer_classInfo,function(index,item){
+		if (mid == item.mid){
+			str += "<option value='" + item.cid + "'>" + item.cname + "</option>";
+		}
+	})
+	$("#showanswer_search_cid").append($(str));
+}
+
+// 修改年级时，根据专业和年级修改班级信息列表
+function showanswer_updateClassInfo(){
+	var mid = $("#showanswer_search_mid").val();
+	var gid = $("#showanswer_search_grade").val();
+	$("#showanswer_search_cid")[0].length = 1;
+	var str = "";
+	$.each(showanswer_classInfo,function(index,item){
+		if (gid == ""){ // 意味着没有选择年级
+			if (mid == item.mid){
+				str += "<option value='" + item.cid + "'>" + item.cname + "</option>";
+			}
+		} else {
+			if (mid == item.mid && item.grade == gid){
+				str += "<option value='" + item.cid + "'>" + item.cname + "</option>";
+			}
+		}
+	})
+	$("#showanswer_search_cid").append($(str));
+}
+
+//当修改学期时，自动修改课程信息列表
+function showanswer_updateCourseInfo(sid){
+	$("#showanswer_search_courseId")[0].length = 1;
+	var str = "";
+	$.each(showanswer_courseInfo,function(index,item){
+		if (sid == ""){ // 意味着没有选择年级
+			str += "<option value='" + item.cid + "'>" + item.cname + "</option>";
+		} else {
+			if (item.semester == sid){
+				str += "<option value='" + item.cid + "'>" + item.cname + "</option>";
+			}
+		}
+	})
+	$("#showanswer_search_courseId").append($(str));
+}
+
+function showanswer_showData(){
+	$('#showanswer_info').datagrid({   
+	    url:'../../answerSheet',   //这个表格中数据的来源  
+	    queryParams:{op:"findByPage"},
+	    striped:true,
+	    nowrap:true,
+	    loadMsg:"数据加载中...",
+	    sortName:"sid",
+	    remoteSort:false,
+	    fitColumns:true,
+	    pagination:true,
+	    rownumbers:true,
+	    pageSize:20,
+	    pageList:[10,15,20,30,40,50,100],
+	    columns:[[   
+	        {field:'sid',title:'学号',width:100,align:'center',sortable:true},   
+	        {field:'sname',title:'学生姓名',width:100,align:'center'},   
+	        {field:'ans',title:'所属班级',width:100,align:'center'},   
+	        {field:'pname',title:'课程名称',width:100,align:'center'},   
+	        {field:'surplus',title:'开设学期',width:100,align:'center',formatter:function(val, row, index){
+	        	return "第"+val+"学期";
+	        }},   
+	        {field:'score',title:'分数',width:100,align:'center',sortable:true,formatter:function(val,row,index){
+	         	if ($.trim(val) == "" || $.trim(val) == "0" ) {
+	         		return "<font color='red'>缺考</font>";
+	         	} else if(parseInt(val)<60){
+	        		return "<font color='red'>"+val+"</font>";
+	        	} else{
+	        		return "<font color='green'>"+val+"</font>";
+	        	}
+	        }}   
+	    ]],
+	    toolbar:"#showanswer_search"
+	}); 
+}
+
+function searchAnswerSheetInfo(){
+	var mid=$.trim($("#showanswer_search_mid").val());
+	var grade=$.trim($("#showanswer_search_grade").val());
+	var cid=$.trim($("#showanswer_search_cid").val());
+	var semester=$.trim($("#showanswer_search_semester").val());
+	var courseId=$.trim($("#showanswer_search_courseId").val());
+	var sid=$.trim($("#showanswer_search_sid").val());
+	var sname=$.trim($("#showanswer_search_sname").val());
+	
+	$('#showanswer_info').datagrid({
+		url:"../../answerSheet",
+		queryParams:{op:'findByCondition',mid:mid, grade:grade, cid:cid, semester:semester, courseId:courseId, sid:sid, sname:sname}
+	});
+}
+</script>

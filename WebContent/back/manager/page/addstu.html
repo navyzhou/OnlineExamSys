@@ -1,0 +1,246 @@
+<style>
+.addstu_ul{
+	list-style-type:none;
+	width:100%;
+	margin-left:0px;
+	padding-left:0px;
+}
+
+.addstu_ul>li{
+	width:33%;
+	float: left;
+	height:40px;
+}
+
+.addstu_ul>li>.navy_label{
+	width:80px;
+	text-align:right;
+	display: inline-block;
+	margin-left:0px;
+}
+
+.addstu_excel{
+	margin:0px auto;
+	width:100%;
+}
+
+.addstu_excel>fieldset{
+	margin-left:20px;
+	padding:20px;
+	width:90%;
+	margin-top:20px;
+}
+</style>
+<form id="addstu_form">
+<ul class="addstu_ul">
+	<li>
+		<label class="navy_label">专业：</label>
+		<select id="addstu_mid" class="navy_select">
+			<option value="">--请选择--</option>
+		</select>
+	</li>
+	<li>
+		<label class="navy_label">年级：</label>
+		<select id="addstu_grade" class="navy_select" onchange="addStu_updateClassInfo()">
+			<option value="">--请选择--</option>
+		</select>
+	</li>
+	<li>
+		<label class="navy_label">班级：</label>
+		<select id="addstu_class" class="navy_select">
+			<option value="">--请选择--</option>
+		</select>
+	</li>
+	<li>
+		<label class="navy_label">学号：</label>
+		<input type="text" class="navy_input" id="addstu_sid" />
+	</li>
+	<li>
+		<label class="navy_label">姓名：</label>
+		<input type="text" class="navy_input" id="addstu_sname" />
+	</li>
+	<li>
+		<label class="navy_label">性别：</label>
+		<input type="radio" name="addstu_sex"  value="男" checked="checked"/>男
+		<input type="radio" name="addstu_sex"  value="女"/>女
+	</li>
+	<li>
+		<label class="navy_label">身份证：</label>
+		<input type="text" class="navy_input" id="addstu_cardid" />
+	</li>
+	<li>
+		<label class="navy_label">联系方式：</label>
+		<input type="text" class="navy_input" id="addstu_tel" />
+	</li>
+	<li>
+		<a href="javascript:addStuInfo()" class="easyui-linkbutton" data-options="iconCls:'icon-user-add'">添加</a>
+		<span id="addstu_warninfo" style="color:red;font-weight: bold;"></span>
+	</li>
+</ul>
+</form>
+<div class="addstu_excel">
+	<fieldset>
+		<legend>学生信息批量导入</legend>
+		<form id="addstu_form_excel">
+			<label class="navy_label">请选择文件：</label>
+			<input type="file" accept="application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" name="addstu_excel" id="addstu_excel_file" />
+			<a href="javascript:addStuInfoForExcel()" class="easyui-linkbutton" data-options="iconCls:'icon-page-white-excel'">批量导入</a>
+			<a href="../../excel/stuInfo.xls" title="点击下载学生信息表格模板" class="easyui-linkbutton" data-options="iconCls:'icon-page-excel'">下载表格模板</a>
+		</form>
+	</fieldset>
+	
+	<fieldset>
+		<legend>学生图片批量导入</legend>
+		<form id="addstu_form_photo">
+			<label class="navy_label">请选择图片：</label>
+			<input type="file" accept="image/*" name="addstu_photos" id="addstu_photo_file" multiple="multiple" onchange="setImagePreviews(this,'addstu_photo_show')"/>
+			<a href="javascript:addStuInfoPhotos()" class="easyui-linkbutton" data-options="iconCls:'icon-picture-add'">批量导入</a>
+		</form>
+		<br />
+		<div id="addstu_photo_show"></div>
+	</fieldset>
+</div>
+<script>
+var addstu_classInfo=[];
+	
+$(function(){
+	var year=new Date().getFullYear();
+	var gradeInfo="";
+	for(var i = year;i >= 2000;i--){
+		gradeInfo += "<option value='"+i+"'>"+i+"年</option>";
+	}
+	$("#addstu_grade").append($(gradeInfo));
+	
+	$.post("../../stuInfo",{op:"getInfos"},function(data){
+		var strInfo = "";
+		$.each(data,function(index,item){
+			if (item.mid == "0"){ //说明这个是专业信息，则拼接起来
+				strInfo += "<option value='" + item.cid + "'>" + item.cname + "</option>";
+			} else {
+				addstu_classInfo[addstu_classInfo.length] = item;
+			}
+		});
+		$("#addstu_mid").append($(strInfo));
+	},"json");
+	
+	$(".addstu_ul input,.addstu_ul select").focus(function(){
+		$("#addstu_warninfo").html("");
+	})
+})
+
+function addStu_updateClassInfo(){
+	var mid = $("#addstu_mid").val();
+	var gid = $("#addstu_grade").val();
+	$("#addstu_class")[0].length = 1;
+	var str = "";
+	$.each(addstu_classInfo,function(index,item){
+		if (mid == item.mid && item.grade == gid){
+			str += "<option value='" + item.cid + "'>" + item.cname + "</option>";
+		}
+	})
+	$("#addstu_class").append($(str));
+}
+
+function addStuInfoForExcel(){
+	var fl = $("#addstu_excel_file")[0].value;
+	if ( !fl ){
+		$.messager.show({title:'温馨提示',msg:'请选择要导入的文件..',timeout:3000,showType:'slide'});
+		return;
+	}
+	
+	var patter = /(.xls)|(.xlsx)/ig;
+	if( !patter.test(fl) ){
+		$.messager.show({title:'温馨提示',msg:'您选择的文件格式有误，请重新选择..',timeout:3000,showType:'slide'});
+		return;
+	}
+
+	$.ajaxFileUpload({
+		url:"../../stuInfo?op=addStuInfos",
+		secureuri:false,
+		fileElementId:"addstu_excel_file",
+		dataType:"txt",
+		success:function(data,status){
+			data=parseInt($.trim(data));
+			if(data == -1){
+				$.messager.show({title:'温馨提示',msg:'请选择要导入的文件..',timeout:3000,showType:'slide'});
+			} else if (data > 0){
+				$.messager.show({title:'成功提示',msg:'学生信息批量导入成功...',timeout:3000,showType:'slide'});
+				$("#addstu_form_excel")[0].reset();
+			}else{
+				$.messager.alert('失败提示','学生信息批量导入失败...','error');
+			}
+		},
+		error:function(data,status,e){
+			$.messager.alert('失败提示','学生信息批量导入失败...\n'+e,'error');
+		}
+	})
+}
+
+function addStuInfoPhotos(){
+	var fl = $("#addstu_photo_file")[0].value;
+	if ( !fl ){
+		$.messager.show({title:'温馨提示',msg:'请选择要导入的图片..',timeout:3000,showType:'slide'});
+		return;
+	}
+	
+	$.ajaxFileUpload({
+		url:"../../stuInfo?op=addStuInfoPhotos",
+		secureuri:false,
+		fileElementId:"addstu_photo_file",
+		dataType:"txt",
+		success:function(data,status){
+			data=parseInt($.trim(data));
+			if (data > 0){
+				$.messager.show({title:'成功提示',msg:'学生图片批量导入成功...',timeout:3000,showType:'slide'});
+				$("#addstu_form_photo")[0].reset();
+				$("#addstu_photo_show").html("");
+			}else{
+				$.messager.alert('失败提示','学生图片批量导入失败...','error');
+			}
+		},
+		error:function(data,status,e){
+			$.messager.alert('失败提示','学生图片批量导入失败，请检查图片格式是否为jpg...\n'+e,'error');
+		}
+	})
+}
+
+function addStuInfo(){
+	var cid = $.trim($("#addstu_class").val());
+	if (cid == ""){
+		$("#addstu_warninfo").html("请选择班级...");
+		return;
+	}
+	var sid = $.trim($("#addstu_sid").val());
+	if (sid == ""){
+		$("#addstu_warninfo").html("请输入学号...");
+		return;
+	}
+	var sname = $.trim($("#addstu_sname").val());
+	if (sname == ""){
+		$("#addstu_warninfo").html("请输入姓名...");
+		return;
+	}
+	var cardId = $.trim($("#addstu_cardid").val());
+	var reg = /(^\d{15}$)|(^\d{18}$)|(^\d{17}(\d|X|x)$)/;
+	if (!reg.test(cardId)){
+		$("#addstu_warninfo").html("身份证格式不正确...");
+		return;
+	}
+	var tel = $.trim($("#addstu_tel").val());
+	var sex = $("input:radio[name='addstu_sex']:checked").val();
+	
+	$.post("../../stuInfo",{op:"addStuInfo",sid:sid,sname:sname,cid:cid,cardId:cardId,tel:tel,sex:sex},function(data){
+		data=parseInt($.trim(data));
+		if(data == -1){
+			$.messager.show({title:'温馨提示',msg:'您输入的学生信息不完整，请确认后重新提交..',timeout:3000,showType:'slide'});
+		} else if (data > 0){
+			$.messager.show({title:'成功提示',msg:'学生信息 '+sname+' 添加成功...',timeout:3000,showType:'slide'});
+			$("#addstu_form")[0].reset();
+		}else{
+			$.messager.alert('失败提示','学生信息 '+sname+' 添加失败...','error');
+		}
+	});
+	
+}
+
+</script>
