@@ -62,7 +62,7 @@ public class MailConnect{
 			message.setRecipients(MimeMessage.RecipientType.TO,to);
 
 			//邮件标题
-			message.setSubject("窝窝团注册验证码");
+			message.setSubject("源辰在线考试系统登录密码");
 			message.setSentDate(new Date()); //设置时间
 
 			String content="<span style=\"font-size:16px;font-weight:blod;font-family:'微软雅黑'\">尊敬的 "+name+" ，您好：</span><br /><br />" +
