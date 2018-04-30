@@ -26,4 +26,31 @@ public interface IAdminInfoBiz {
 	
 	
 	public Map<String, Object> findByPage(String aname, int pageNo, int pageSize);
+	
+	/**
+	 * 修改密码
+	 * @param oldPwd
+	 * @param newPwd
+	 * @param id
+	 * @return
+	 */
+	public int updatePwd(String oldPwd,String newPwd,int id);
+	
+	public int updateChangeStatus(String aid, String status);
+	
+	/**
+	 * 根据账号和邮箱查询用户
+	 * @param aid
+	 * @param email
+	 * @return
+	 */
+	public int getCountByEmail(String aid, String email);
+	
+	/**
+	 * 重置密码
+	 * @param aid
+	 * @param pwd
+	 * @return
+	 */
+	public int updatePwdByEmail(String aid, String pwd);
 }

@@ -61,6 +61,12 @@ function showReg(val){
 	} else {
 		$("#adminOp>a:eq(1)").css("display","none");
 	}
+	
+	if( val != 3 ){
+		$("#adminOp>a:eq(0)").css("display","inline-block");
+	} else {
+		$("#adminOp>a:eq(0)").css("display","none");
+	}
 }
 </script>
 </head> 
@@ -84,7 +90,7 @@ function showReg(val){
 		<hr class="hr20">
 	</form>
 	<div id="adminOp">
-		<a href="#">忘记密码</a>
+		<a href="pwd.html">忘记密码</a>
 		<a href="reg.html">注册账号</a>
 	</div>
 </div>

@@ -17,7 +17,6 @@ public class AdminInfoBizImpl implements IAdminInfoBiz {
 		if (StringUtil.isNull(aname, pwd, email)) {
 			return -1;
 		} else {
-			
 			IAdminInfoDao adminInfoDao = new AdminInfoDaoImpl();
 			pwd = MD5Encryption.createPassword(pwd);
 			int result = adminInfoDao.add(aname, pwd, email, photo);
@@ -49,4 +48,38 @@ public class AdminInfoBizImpl implements IAdminInfoBiz {
 		return map;
 	}
 
+	@Override
+	public int updatePwd(String oldPwd, String newPwd, int id) {
+		IAdminInfoDao adminInfoDao = new AdminInfoDaoImpl();
+		oldPwd = MD5Encryption.createPassword(oldPwd);
+		newPwd = MD5Encryption.createPassword(newPwd);
+		return adminInfoDao.updatePwd(oldPwd, newPwd, id);
+	}
+
+	@Override
+	public int updateChangeStatus(String aid, String status) {
+		IAdminInfoDao adminInfoDao = new AdminInfoDaoImpl();
+		return adminInfoDao.updateChangeStatus(aid, status);
+	}
+
+	@Override
+	public int getCountByEmail(String aid, String email) {
+		if (StringUtil.isNull(aid, email)) {
+			return -1;
+		} else {
+			IAdminInfoDao adminInfoDao = new AdminInfoDaoImpl();
+			return adminInfoDao.getCountByEmail(aid, email);
+		}
+	}
+
+	@Override
+	public int updatePwdByEmail(String aid, String pwd) {
+		if (StringUtil.isNull(aid, pwd)) {
+			return -1;
+		} else {
+			IAdminInfoDao adminInfoDao = new AdminInfoDaoImpl();
+			pwd = MD5Encryption.createPassword(pwd);
+			return adminInfoDao.updatePwdByEmail(aid, pwd);
+		}
+	}
 }

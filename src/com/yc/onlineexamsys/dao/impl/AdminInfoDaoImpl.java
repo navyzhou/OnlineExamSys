@@ -13,14 +13,14 @@ public class AdminInfoDaoImpl implements IAdminInfoDao{
 	@Override
 	public int add(String aname, String pwd, String email, String photo) {
 		DBHelper db = new DBHelper();
-		String sql = "insert into adminInfos values(seq_adminInfos_aid.nextval,2,?,?,?,?,1)";
+		String sql = "insert into adminInfos values(seq_adminInfos_aid.nextval,2,?,?,?,?,2)";
 		return db.update(sql, aname, pwd, email, photo);
 	}
 
 	@Override
 	public AdminInfos login(String account, String pwd) {
 		DBHelper db = new DBHelper();
-		String sql = "select aid, rid, aname, pwd, email, photo, status from adminInfos where (aid=? or email=?) and pwd=?";
+		String sql = "select aid, rid, aname, pwd, email, photo, status from adminInfos where (aid=? or email=?) and pwd=? and status = 1";
 		return db.find(sql, AdminInfos.class, account, account, pwd);
 	}
 
@@ -56,5 +56,33 @@ public class AdminInfoDaoImpl implements IAdminInfoDao{
 		DBHelper db = new DBHelper();
 		String sql = "select aid from adminInfos where email=?";
 		return db.getTotal(sql,email);
+	}
+
+	@Override
+	public int updatePwd(String oldPwd, String newPwd, int id) {
+		DBHelper db = new DBHelper();
+		String sql = "update adminInfos set pwd =? where aid=? and pwd =?";
+		return db.update(sql, newPwd, id, oldPwd);
+	}
+
+	@Override
+	public int updateChangeStatus(String aid, String status) {
+		DBHelper db = new DBHelper();
+		String sql = "update adminInfos set status =? where aid=?";
+		return db.update(sql, status, aid);
+	}
+
+	@Override
+	public int getCountByEmail(String aid, String email) {
+		DBHelper db = new DBHelper();
+		String sql = "select count(aid) from adminInfos where aid=? and email=? and status = 1 ";
+		return db.getTotal(sql,aid, email);
+	}
+
+	@Override
+	public int updatePwdByEmail(String aid, String pwd) {
+		DBHelper db = new DBHelper();
+		String sql = "update adminInfos set pwd =? where aid=?";
+		return db.update(sql, pwd, aid);
 	}
 }

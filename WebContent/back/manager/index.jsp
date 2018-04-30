@@ -43,7 +43,10 @@
             <div title="管理员信息管理" data-options="iconCls:'icon-user-group'" style="padding:5px;">  	
     			<ul class="easyui-tree wu-side-tree">
                     <li iconCls="icon-bricks"><a href="javascript:void(0)" data-icon="icon-bricks" data-link="page/roles.html" iframe="0">角色信息管理</a></li>
-                    <li iconCls="icon-users"><a href="javascript:void(0)" data-icon="icon-users" data-link="page/admin.html" iframe="0">管理员信息管理</a></li>
+                    <c:if test="${currentLoginUser.rid == 1}">
+                    <li iconCls="icon-users"><a href="javascript:void(0)" data-icon="icon-users" data-link="page/admins.html" iframe="0">管理员管理</a></li>
+                    </c:if>
+                    <li iconCls="icon-users"><a href="javascript:void(0)" data-icon="icon-users" data-link="page/admin.html" iframe="0">管理员信息</a></li>
                 </ul>
             </div>
             <div title="专业、课程管理" data-options="iconCls:'icon-book'" style="padding:5px;">  	
@@ -76,7 +79,7 @@
             </div>
             <div title="个人信息设置" data-options="iconCls:'icon-wrench'" style="padding:5px;">  	
     			<ul class="easyui-tree wu-side-tree">
-                    <li iconCls="icon-cog"><a href="javascript:void(0)" data-icon="icon-cog" data-link="page/welcome.html" iframe="0">修改密码</a></li>
+                    <li iconCls="icon-cog"><a href="javascript:void(0)" data-icon="icon-cog" data-link="page/updatepwd.html" iframe="0">修改密码</a></li>
                 </ul>
             </div>
         </div>

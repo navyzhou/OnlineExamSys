@@ -42,9 +42,10 @@ function adminReg(){
 	}
 	
 	var email = $.trim($("#email").val());
-	if (email == "" ){
+	var reg = /^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/ ; 
+	if (  !reg.test(email) ){
 		$("#email").addClass("navy_error");
-		$("#waring-info").text("请输入邮箱...");
+		$("#waring-info").text("邮箱格式有误，请重新输入...");
 		return;
 	}
 	
@@ -71,7 +72,7 @@ function adminReg(){
 			$("#waring-info").text("注册失败，请稍后重试或联系管理员...");
 		}
 	})
-}
+} 
 </script>
 </head> 
 <body> 

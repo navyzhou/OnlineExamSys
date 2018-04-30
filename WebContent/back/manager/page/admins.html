@@ -1,15 +1,14 @@
-<table id="admin_info" data-options="fit:true"></table> 
+<table id="admins_info" data-options="fit:true"></table> 
 
-<div id="admin_search" style="height:28px;">
+<div id="admins_search" style="height:28px;">
 	<label class="navy_label">姓名：</label>
-	<input type="text" name="cname" id="admin_search_aname" class="navy_input"/>
+	<input type="text" name="cname" id="admins_search_aname" class="navy_input"/>
 	<a href="javascript:searchAdminInfo()" class="easyui-linkbutton" data-options="iconCls:'icon-user-magnify'">查询</a>
 </div>
 
 <script>
-var admin_roles= ["", "管理员","教师", "学生"];
-
-$('#admin_info').datagrid({   
+var admins_roles= ["", "管理员","教师", "学生"];
+$('#admins_info').datagrid({   
     url:'../../adminInfo',   //这个表格中数据的来源  
     queryParams:{op:"findByPage"},
     striped:true,
@@ -33,14 +32,14 @@ $('#admin_info').datagrid({
         {field:'aid',title:'编号',width:100,align:'center',sortable:true},   
         {field:'aname',title:'姓名',width:200,align:'center'},   
         {field:'rid',title:'角色',width:100,align:'center',formatter:function(val, row, index){
-        	return admin_roles[val];
+        	return admins_roles[val];
         }},   
         {field:'pwd',title:'密码',width:300,align:'center',formatter:function(val,row,index){
         	if(val!=undefined){
         		return hex_md5(val);
     		}
         }},
-        {field:'email',title:'邮箱',width:100,align:'center'},  
+        {field:'email',title:'邮箱',width:200,align:'center'}, 
         {field:'status',title:'状态',width:100,align:'center',formatter:function(val,row,index) {
         	if (val == 1) {
         		return "<font color='green'>正常</font>";
@@ -51,19 +50,44 @@ $('#admin_info').datagrid({
         	} else {
         		return "<font color='red'>账号异常</font>";
         	}
-        }},  
+        }}, 
+        {field:'_operation',title:'操作',width:100,align:'center',formatter:function(val,row,index){
+        	if(row.rid == 1){
+        		return "";
+        	}
+        	if (row.status == 1){ // 说明是正常
+        		return '<a href="javascript:adminsChangeAccountStatus('+row.aid+',3)" class="navy-icon-user-cross">冻结</a>';
+        	} else if (row.status == 2){ // 说明为审核
+        		return '<a href="javascript:adminsChangeAccountStatus('+row.aid+',2)" class="navy-icon-user-accept16">通过</a>';
+        	} else if (row.status == 3){ // 已被冻结
+        		return '<a href="javascript:adminsChangeAccountStatus('+row.aid+',1)" class="navy-icon-user-tick">解冻</a>';
+        	}
+        	return "";
+        }}
     ]],
-    toolbar:"#admin_search"
+    toolbar:"#admins_search"
 }); 
 
 function searchAdminInfo(){
-	var aname=$.trim( $("#admin_search_aname").val() );
+	var aname=$.trim( $("#admins_search_aname").val() );
 	
 	if (aname!=""){
-		$('#admin_info').datagrid({
+		$('#admins_info').datagrid({
 			url:"../../adminInfo",
 			queryParams:{op:'findByAname',aname:aname}
 		});
 	}
+}
+
+function adminsChangeAccountStatus(aid,status){
+	$.post("../../adminInfo",{op:"updateChangeStatus", aid:aid, status:status}, function(data) {
+		data = parseInt($.trim(data));
+		if (data > 0){
+			$.messager.show({title:'成功提示',msg:'管理员状态修改成功...',timeout:3000,showType:'slide'});
+			$('#admins_info').datagrid("reload");
+		} else {
+			$.messager.alert('失败提示','管理员状态修改失败，请稍后重试...','error');
+		}
+	},"text");
 }
 </script>

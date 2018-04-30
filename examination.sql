@@ -32,9 +32,11 @@ create table adminInfos(
    pwd varchar2(200) not null, --管理员密码
    email varchar2(100) not null unique, --管理员邮箱
    photo varchar2(200), --管理员图像
-   status number(2)  
+   status number(2)    -- 1.正常  2.未审核   3.冻结
 );
 create sequence seq_adminInfos_aid start with 1001;
+
+insert into adminInfos values(1000, 1, 'admin' ,'B536EC04F7307E30', '278224975@qq.com','',1); --12345678
 
 
 --课程信息表
