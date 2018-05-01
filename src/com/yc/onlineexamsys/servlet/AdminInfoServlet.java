@@ -1,7 +1,6 @@
 package com.yc.onlineexamsys.servlet;
 
 import java.io.IOException;
-import java.util.Date;
 import java.util.Map;
 import java.util.Random;
 
