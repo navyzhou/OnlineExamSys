@@ -1,3 +1,5 @@
+<link rel="stylesheet" type="text/css" href="../../css/user.css" />
+
 <table id="showstu_info" data-options="fit:true"></table> 
 
 <!-- 条件查询栏  -->
@@ -26,6 +28,25 @@
 	
 	</div>
 </div>
+
+<div id="showstu_upateInfo" class="easyui-dialog" style="width:720px;height:500px;padding-left:20px" data-options="resizable:true,modal:true,closed:true,onClose:function(){}"> 
+	<div id="showstu_upateInfo_box">
+		<div>
+			<img src="../../images/user.png" width="200px" height="200px;" id="showstu_upateInfo_photo"/>
+			<input id="showstu_upateInfo_images" type="file" style="width:100px;height:30px" value="修改图片"/>
+		</div>
+		<ul>
+			<li><span>学号：</span><span id="showstu_upateInfo_sid"></span></li>
+			<li><span>姓名：</span><input id="showstu_upateInfo_sname" type="text" class="navy_input" /></li>
+			<li><span>专业：</span><select class="navy_select" id="showstu_upateInfo_major"><option value="">--请选择--</option></select></li>
+			<li><span>班级：</span><select class="navy_select" id="showstu_upateInfo_cname"><option value="">--请选择--</option></select></li>
+			<li><span>性别：</span><input type="radio" name="sex" value="男"/>男&nbsp;<input type="radio" name="sex" value="女"/>女</li>
+			<li><span>身份证：</span><input id="showstu_upateInfo_cardId" type="text" class="navy_input"/></li>
+			<li><span>联系方式：</span><input id="showstu_upateInfo_tel" type="text" class="navy_input"/></span></li>
+		</ul>
+	</div>
+</div>
+
 
 <script>
 var showstu_classInfo=[];
@@ -112,7 +133,8 @@ var showStuDataGridObject=$('#showstu_info').datagrid({
         	var flag = row.cardID.substring(12);
         	var str = '<a href="javascript:showStuDetailDiv(\''+row.photo+'\','+index+')" class="navy-icon-vcard">图像</a>';
         	str += '<a href="javascript:showStuUpdateBySid(\''+row.sid+'\')" class="navy-icon-vcard-edit">修改</a>';
-        	str += '<a href="javascript:showStuResetBySid(\''+row.sid+'\',\''+flag+'\')" class="navy-icon-vcard-key">重置密码</a>';
+        	str += '<a href="javascript:showStuDeleteSid(\''+row.sid+'\')" class="navy-icon-vcard-delete">删除</a>';
+        	str += '<a href="javascript:showStuResetBySid(\''+row.sid+'\',\''+flag+'\','+index+')" class="navy-icon-vcard-key">重置密码</a>';
        		return str;
         }}
     ]],
@@ -134,7 +156,7 @@ function searchShowStuInfo(){
 }
 
 // 重置密码
-function showStuResetBySid(sid,pwd){
+function showStuResetBySid(sid, pwd, index) {
 	showStuDataGridObject.datagrid("unselectAll");
 	showStuDataGridObject.datagrid("selectRow",index);
 	$.messager.confirm('确认提示','您确定要重置该学生密码吗?',function(rt){
@@ -146,19 +168,55 @@ function showStuResetBySid(sid,pwd){
 				} else if (data > 0){
 					$.messager.show({title:'成功提示',msg:'密码重置成功，初始密码为身份证后6位，请通知学生及时修改...',timeout:3000,showType:'slide'});
 				}else{
-					$.messager.alert('失败提示','密码重置失败，请稍后重试...','error');
+					$.messager.alert('失败提示','密码重置失败，请稍后重试...','error');3
 				}
 			})
 		}
-	})
+	});
 }
 
 // 显示图像
-function showStuDetailDiv(photo,index){
+function showStuDetailDiv(photo,index) {
 	showStuDataGridObject.datagrid("unselectAll");
 	showStuDataGridObject.datagrid("selectRow",index);
 	$("#showstu_showphoto").html("<img src='../../../stuPhotos/"+ photo +"' with='120px' height='120px' alt='"+photo+"' />");
 	$("#showstu_detailInfo").dialog({title: '学生图像',iconCls:"icon-vcard"}); 
 	$("#showstu_detailInfo").dialog("open");
+}
+
+// 删除学生信息
+function showStuDeleteSid(sid) {
+	$.messager.confirm('确认提示','数据一旦删除将不能恢复，您确定要删除该学生信息吗?',function(rt){
+		if(rt){
+			$.post("../../stuInfo",{op:"deleteStu",sid:sid},function(data){
+				data=parseInt($.trim(data));
+				if (data == -1){
+					$.messager.show({title:'温馨提示',msg:'网络出现异常，请稍微重试',timeout:3000,showType:'slide'});
+				} else if (data > 0){
+					$.messager.show({title:'成功提示',msg:'该学生信息删除成功...',timeout:3000,showType:'slide'});
+					$('#showstu_info').datagrid("reload");
+				}else{
+					$.messager.alert('失败提示','学生信息删除失败，该学生已经参加过考试，不能删除...','error');
+				}
+			})
+		}
+	});
+}
+
+function showStuUpdateBySid(sid) {
+	// 获取该学生的详细信息
+	
+	$("#showstu_upateInfo").dialog({
+		title: '修改学生信息',
+		iconCls:"icon-vcard-edit",
+		buttons: [{
+			text: '确定',
+			iconCls: 'icon-ok',
+			handler: function(){
+				
+			}
+		}]
+	}); 
+	$("#showstu_upateInfo").dialog("open");
 }
 </script>

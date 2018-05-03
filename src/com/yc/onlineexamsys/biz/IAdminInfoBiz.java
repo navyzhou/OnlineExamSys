@@ -53,4 +53,12 @@ public interface IAdminInfoBiz {
 	 * @return
 	 */
 	public int updatePwdByEmail(String aid, String pwd);
+	
+	/**
+	 * 修改管理员图像
+	 * @param aid
+	 * @param photo
+	 * @return
+	 */
+	public int updateHead(int aid, String photo);
 }

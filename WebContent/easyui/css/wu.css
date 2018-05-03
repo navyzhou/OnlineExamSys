@@ -165,9 +165,9 @@ select, button, input[type="button"], input[type="reset"], input[type="submit"],
 
 .navy_update_pwd {
 	position: absolute;
-	top: 40%;
+	top: 30%;
 	left: 30%;
-	transform: reanslate(-40%, -30%);
+	transform: reanslate(-30%, -30%);
 	width: 280px;
 }
 
@@ -200,4 +200,3 @@ select, button, input[type="button"], input[type="reset"], input[type="submit"],
 #update_pwd_error{
 	display: none;
 }
-

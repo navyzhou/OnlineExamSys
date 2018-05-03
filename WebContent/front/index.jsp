@@ -9,6 +9,7 @@
 <link rel="shortcut icon" type="image/x-icon" href="../easyui/images/yc.png"/>
 <link rel="stylesheet" type="text/css" href="../easyui/css/easyui.css" />
 <link rel="stylesheet" type="text/css" href="../easyui/css/wu.css" />
+<link rel="stylesheet" type="text/css" href="../css/user.css" />
 <link rel="stylesheet" type="text/css" href="../easyui/css/icon.css" />
 <script type="text/javascript" src="../easyui/js/jquery-1.11.3.js"></script>
 <script type="text/javascript" src="../easyui/js/jquery.easyui.min.js"></script>
@@ -41,7 +42,7 @@
                    <li iconCls="icon-page-header-footer"><a href="javascript:void(0)" data-icon="icon-page-header-footer" data-link="page/paper.html" iframe="0">考试信息</a></li>
                    <li iconCls="icon-page-attach"><a href="javascript:void(0)" data-icon="icon-page-attach" data-link="page/grade.html" iframe="0">成绩信息</a></li>
                    <li iconCls="icon-report-user"><a href="javascript:void(0)" data-icon="icon-report-user" data-link="page/user.html" iframe="0">个人信息</a></li>
-                   <li iconCls="icon-user-key"><a href="javascript:void(0)" data-icon="icon-user-key" data-link="page/password.html" iframe="0">修改密码</a></li>
+                   <li iconCls="icon-user-key"><a href="javascript:void(0)" data-icon="icon-user-key" data-link="page/pwd.html" iframe="0">修改密码</a></li>
                </ul>
         </div>
     </div>	

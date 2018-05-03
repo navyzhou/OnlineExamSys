@@ -1,0 +1,41 @@
+@CHARSET "UTF-8";
+
+#user_box, #showstu_upateInfo_box {
+	width: 680px;
+	margin: 20px auto;
+}
+
+#user_box > div,#showstu_upateInfo_box > div{
+	width:200px;
+	height:200px;
+	float:left;
+	margin-top: 60px;
+}
+
+#user_box > ul, #showstu_upateInfo_box > ul{
+	width:400px;
+	hegiht:auto;
+	float:left;
+	padding: 0px;
+	list-style-type: none;
+	margin-left: 50px;
+}
+
+#user_box > ul > li,#showstu_upateInfo_box > ul > li{
+	margin-top: 20px;
+}
+
+#user_box > ul > li > span:first-child,#showstu_upateInfo_box > ul > li > span{
+	width: 80px;
+	text-align: right;
+	display: inline-block;
+	font-size: 14px;
+	font-weight: bold;
+	line-height: 24px;
+}
+
+#user_box > ul > li > span:last-child{
+	font-size: 14px;
+	font-weight: bold;
+	line-height: 24px;
+}

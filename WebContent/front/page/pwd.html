@@ -28,14 +28,14 @@ function updatepwd_pwd() {
 
 	if (oldpwd == "") {
 		$("#update_pwd_error").css("display", "block");
-		$("#update_pwd_error>span").eq(0).text("请输入新密码...");
+		$("#update_pwd_error>span").eq(0).text("请输入原密码...");
 		return;
 	}
 
 	var newpwd = $("#update_newpwd").val();
 	if (newpwd == "") {
 		$("#update_pwd_error").css("display", "block");
-		$("#update_pwd_error>span").eq(0).text("请输入原密码...");
+		$("#update_pwd_error>span").eq(0).text("请输入新密码...");
 		return;
 	}
 
@@ -46,12 +46,12 @@ function updatepwd_pwd() {
 		return;
 	}
 	
-	$.post("../../adminInfo",{op:"updatepwd", oldpwd:oldpwd, newpwd:newpwd},function(data) {
+	$.post("../stuInfo",{op:"updatepwd", oldpwd:oldpwd, newpwd:newpwd},function(data) {
 		data = parseInt( $.trim(data) );
 		
 		if (data == 0){
 			$.messager.alert('温馨提示','请先登录...','error');
-			location.href="../../login.html";
+			location.href="../login.html";
 		} else if (data == 1){
 			$("#update_pwd_error").css("display", "block");
 			$("#update_pwd_error>span").eq(0).text("您输入的信息不完整，请完善后再提交...");
@@ -68,6 +68,5 @@ function updatepwd_pwd() {
 			$.messager.show({title:'成功提示',msg:'密码修改成功...',timeout:3000,showType:'slide'});
 		} 
 	},"text");
-	
 }
 </script>

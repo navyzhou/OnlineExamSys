@@ -8,13 +8,17 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import javax.servlet.jsp.JspFactory;
 import javax.servlet.jsp.PageContext;
 
+import com.yc.onlineexamsys.bean.StuInfo;
 import com.yc.onlineexamsys.biz.IStuInfoBiz;
 import com.yc.onlineexamsys.biz.impl.StuInfoBizImpl;
 import com.yc.onlineexamsys.util.FileUploadUtil;
+import com.yc.onlineexamsys.util.MD5Encryption;
 import com.yc.onlineexamsys.util.ReadExcelToDB;
+import com.yc.onlineexamsys.util.SessionAttributeKey;
 import com.yc.onlineexamsys.util.StringUtil;
 
 @WebServlet("/stuInfo")
@@ -38,6 +42,59 @@ public class StuInfoServlet extends BasicServlet {
 			findByCondition(request, response);
 		} else if ("resetPwd".equals(op)){ // 重置密码
 			resetPwd(request,response);
+		} else if ("findInfoBySid".equals(op)) { // 查看个人信息
+			findInfoBySid(request,response);
+		} else if ("updatepwd".equals(op)) { // 修改密码
+			updatepwd(request, response);
+		} else if ("deleteStu".equals(op)) { // 删除学生信息
+			deleteStu(request, response);
+		}
+	}
+	
+	private void deleteStu(HttpServletRequest request, HttpServletResponse response) {
+		String sid = request.getParameter("sid");
+		IStuInfoBiz stuInfoBiz = new  StuInfoBizImpl();
+		this.send(response, stuInfoBiz.deleteStu(sid));
+	}
+
+	private void updatepwd(HttpServletRequest request, HttpServletResponse response) {
+		String oldpwd = request.getParameter("oldpwd");
+		String newpwd = request.getParameter("newpwd");
+
+		HttpSession session = request.getSession();
+		Object obj = session.getAttribute(SessionAttributeKey.CURRENTLOGINUSER);
+		int result = -1;
+		if (obj == null) { // 说明没有登录
+			result = 0;
+		} else {
+			if (StringUtil.isNull(oldpwd, newpwd )) { // 信息不完整
+				result = 1;
+			} else {
+				StuInfo stuInfo = (StuInfo) obj;
+				if ( !MD5Encryption.createPassword(oldpwd).equals(stuInfo.getPwd()) ) { // 原密码错误
+					result = 2;
+				} else {
+					IStuInfoBiz stuInfoBiz = new  StuInfoBizImpl();
+					if (stuInfoBiz.updatePwd(stuInfo.getSid(), oldpwd, newpwd) > 0){
+						stuInfo.setPwd(MD5Encryption.createPassword(newpwd));
+						session.setAttribute(SessionAttributeKey.CURRENTLOGINUSER, stuInfo);
+						result = 4; // 更新成功
+					} else {
+						result = 3; // 更新失败 
+					}
+				}
+			}
+		}
+		this.send(response, result);
+	}
+
+	private void findInfoBySid(HttpServletRequest request, HttpServletResponse response) {
+		HttpSession session = request.getSession();
+		Object obj = session.getAttribute(SessionAttributeKey.CURRENTLOGINUSER);
+		if (obj == null) { // 说明没有登录
+			this.send(response, "{\"err\":\"1\"}");
+		} else {
+			this.send(response, obj);
 		}
 	}
 

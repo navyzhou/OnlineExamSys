@@ -1,6 +1,9 @@
 package com.yc.onlineexamsys.servlet;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Date;
 import java.util.Map;
 import java.util.Random;
 
@@ -16,10 +19,13 @@ import com.yc.onlineexamsys.bean.AdminInfos;
 import com.yc.onlineexamsys.biz.IAdminInfoBiz;
 import com.yc.onlineexamsys.biz.impl.AdminInfoBizImpl;
 import com.yc.onlineexamsys.util.FileUploadUtil;
+import com.yc.onlineexamsys.util.LogUtil;
 import com.yc.onlineexamsys.util.MD5Encryption;
 import com.yc.onlineexamsys.util.MailConnect;
 import com.yc.onlineexamsys.util.SessionAttributeKey;
 import com.yc.onlineexamsys.util.StringUtil;
+
+import sun.misc.BASE64Decoder;
 
 @WebServlet("/adminInfo")
 public class AdminInfoServlet extends BasicServlet {
@@ -40,14 +46,73 @@ public class AdminInfoServlet extends BasicServlet {
 			updateChangeStatus(request, response);
 		} else if ("resetPwd".equals(op)) { // 发送验证码并重置密码
 			resetPwd(request, response);
-		} 
+		} else if ("updateHead".equals(op)) { // 修改管理员图像
+			updateHead(request, response);
+		}
+	}
+
+
+	private void updateHead(HttpServletRequest request, HttpServletResponse response) {
+		HttpSession session = request.getSession();
+		Object obj = session.getAttribute(SessionAttributeKey.CURRENTLOGINUSER);
+
+		String result = "-1";
+		if (obj == null) { // 说明没有登录
+			result = "0";
+		} else {
+			BASE64Decoder base64=new BASE64Decoder(); 
+			FileOutputStream fos = null;
+			try {
+				//64位解码  
+				byte[] buffer=base64.decodeBuffer(  request.getParameter("imageData") );
+
+				//写进文件  
+				String filePath="../adminPhotos/"+new Date().getTime() + "" + new Random().nextInt(100000) + ".png";
+				String path=request.getServletContext().getRealPath("/") + filePath;
+
+				fos =new FileOutputStream(path);  
+				fos.write(buffer);  
+				fos.flush(); 
+
+				IAdminInfoBiz adminInfoBiz = new  AdminInfoBizImpl();
+				AdminInfos adminInfo = (AdminInfos) obj;
+				if ( adminInfoBiz.updateHead(adminInfo.getAid(), filePath) > 0) {
+					result = filePath;  // 修改成功
+					
+					// 获取原照片信息
+					String photo = adminInfo.getPhoto();
+					if (!StringUtil.isNull(photo)) {  // 如果存在，则删除原图片
+						File file = new File(request.getServletContext().getRealPath("/") + photo);
+						if (file.exists()){
+							file.delete();
+						}
+					}
+					
+					adminInfo.setPhoto(filePath); // 修改session中的图片信息
+				} else {
+					result = "2";  // 修改失败
+				}
+				
+			} catch (IOException e) { // 上传图片失败
+				result = "1";
+				LogUtil.log.error(e);
+			}  finally {
+				if (fos != null){
+					try {
+						fos.close();
+					} catch (IOException e) {
+					}  
+				}
+			}
+		}
+		this.send(response, result);
 	}
 
 
 	private void resetPwd(HttpServletRequest request, HttpServletResponse response) {
 		String aid=request.getParameter("account");
 		String  email=request.getParameter("email");
-		
+
 		IAdminInfoBiz adminInfoBiz = new  AdminInfoBizImpl();
 		int result = -1;
 		if (adminInfoBiz.getCountByEmail(aid, email) >0 ){ // 说明是注册用户，则将新密码发送到邮箱
@@ -77,7 +142,7 @@ public class AdminInfoServlet extends BasicServlet {
 	private void updateChangeStatus(HttpServletRequest request, HttpServletResponse response) {
 		String aid = request.getParameter("aid");
 		String status = request.getParameter("status");
-		
+
 		IAdminInfoBiz adminInfoBiz = new  AdminInfoBizImpl();
 		this.send(response,adminInfoBiz.updateChangeStatus(aid, status));
 	}

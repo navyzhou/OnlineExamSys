@@ -11,7 +11,6 @@ import com.yc.onlineexamsys.util.MD5Encryption;
 import com.yc.onlineexamsys.util.StringUtil;
 
 public class AdminInfoBizImpl implements IAdminInfoBiz {
-
 	@Override
 	public int add(String aname, String pwd, String email, String photo) {
 		if (StringUtil.isNull(aname, pwd, email)) {
@@ -81,5 +80,11 @@ public class AdminInfoBizImpl implements IAdminInfoBiz {
 			pwd = MD5Encryption.createPassword(pwd);
 			return adminInfoDao.updatePwdByEmail(aid, pwd);
 		}
+	}
+
+	@Override
+	public int updateHead(int aid, String photo) {
+		IAdminInfoDao adminInfoDao = new AdminInfoDaoImpl();
+		return adminInfoDao.updateHead(aid, photo);
 	}
 }

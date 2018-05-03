@@ -49,7 +49,6 @@ public class DBHelper {
 				rs.close();
 			} catch (SQLException e) {
 				LogUtil.log.error(e);
-				e.printStackTrace();
 			}
 		}
 
@@ -58,7 +57,6 @@ public class DBHelper {
 				pstmt.close();
 			} catch (SQLException e) {
 				LogUtil.log.error(e);
-				e.printStackTrace();
 			}
 		}
 
@@ -67,7 +65,6 @@ public class DBHelper {
 				con.close();
 			} catch (SQLException e) {
 				LogUtil.log.error(e);
-				e.printStackTrace();
 			}
 		}
 	}

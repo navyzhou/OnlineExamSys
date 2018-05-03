@@ -95,4 +95,20 @@ public interface IStuInfoBiz {
 	 * @return
 	 */
 	public StuInfo login(String account, String pwd);
+	
+	/**
+	 * 修改密码
+	 * @param sid
+	 * @param oldPwd
+	 * @param newPwd
+	 * @return
+	 */
+	public int updatePwd(String sid, String oldPwd, String newPwd);
+	
+	/**
+	 * 删除学生信息
+	 * @param sid
+	 * @return
+	 */
+	public int deleteStu(String sid);
 }

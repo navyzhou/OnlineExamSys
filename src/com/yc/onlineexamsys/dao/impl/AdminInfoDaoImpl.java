@@ -85,4 +85,11 @@ public class AdminInfoDaoImpl implements IAdminInfoDao{
 		String sql = "update adminInfos set pwd =? where aid=?";
 		return db.update(sql, pwd, aid);
 	}
+
+	@Override
+	public int updateHead(int aid, String photo) {
+		DBHelper db = new DBHelper();
+		String sql = "update adminInfos set photo =? where aid=?";
+		return db.update(sql, photo, aid);
+	}
 }

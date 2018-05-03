@@ -89,7 +89,7 @@ public class MailConnect{
 			//关闭邮件传输
 			transport.close();
 		} catch (Exception e) {
-			e.printStackTrace();
+			LogUtil.log.error(e);
 			return false;
 		}
 		return true;

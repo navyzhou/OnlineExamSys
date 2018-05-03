@@ -146,7 +146,21 @@ public class StuInfoDaoImpl implements IStuInfoDao{
 	@Override
 	public StuInfo login(String account, String pwd) {
 		DBHelper db = new DBHelper();
-		String sql = "select * from stuInfo where sid=? and pwd=?";
+		String sql = "select sid, sname, pwd, cname,s.status, mname, sex, cardId, tel, photo from stuInfo s,classInfo c, majorInfo m where s.cid=c.cid and m.mid=c.mid and sid=? and pwd=?";
 		return db.find(sql, StuInfo.class, account, pwd);
+	}
+
+	@Override
+	public int updatePwd(String sid, String oldPwd, String newPwd) {
+		DBHelper db = new DBHelper();
+		String sql = "update stuInfo set pwd = ? where sid = ? and pwd = ?";
+		return db.update(sql, newPwd, sid, oldPwd);
+	}
+
+	@Override
+	public int deleteStu(String sid) {
+		DBHelper db = new DBHelper();
+		String sql = "delete from stuInfo where sid = ?";
+		return db.update(sql, sid);
 	}
 }

@@ -13,7 +13,6 @@ import com.yc.onlineexamsys.util.MD5Encryption;
 import com.yc.onlineexamsys.util.StringUtil;
 
 public class StuInfoBizImpl implements IStuInfoBiz{
-
 	@Override
 	public List<ClassInfo> getInfo() {
 		IStuInfoDao stuInfoDao = new StuInfoDaoImpl();
@@ -105,6 +104,28 @@ public class StuInfoBizImpl implements IStuInfoBiz{
 			pwd = MD5Encryption.createPassword(pwd);
 			IStuInfoDao stuInfoDao= new StuInfoDaoImpl();
 			return stuInfoDao.login(account, pwd);
+		}
+	}
+
+	@Override
+	public int updatePwd(String sid, String oldPwd, String newPwd) {
+		if (StringUtil.isNull(oldPwd, newPwd)){
+			return -1;
+		} else {
+			oldPwd = MD5Encryption.createPassword(oldPwd);
+			newPwd = MD5Encryption.createPassword(newPwd);
+			IStuInfoDao stuInfoDao= new StuInfoDaoImpl();
+			return stuInfoDao.updatePwd(sid, oldPwd, newPwd);
+		}
+	}
+
+	@Override
+	public int deleteStu(String sid) {
+		if (StringUtil.isNull(sid)){
+			return -1;
+		} else {
+			IStuInfoDao stuInfoDao= new StuInfoDaoImpl();
+			return stuInfoDao.deleteStu(sid);
 		}
 	}
 }

@@ -1,0 +1,37 @@
+<div id="user_box">
+	<div>
+		<img src="../images/user.png" width="200px" height="200px;" id="user_photo"/>
+	</div>
+	<ul>
+		<li><span>学号：</span><span id="user_sid"></span></li>
+		<li><span>姓名：</span><span id="user_sname"></span></li>
+		<li><span>性别：</span><span id="user_sex"></span></li>
+		<li><span>班级：</span><span id="user_cname"></span></li>
+		<li><span>专业：</span><span id="user_major"></span></li>
+		<li><span>身份证：</span><span id="user_cardId"></span></li>
+		<li><span>联系方式：</span><span id="user_tel"></span></li>
+	</ul>
+</div>
+
+<script>
+$(function(){
+	$.get("../stuInfo", {op:"findInfoBySid"}, function(data) {
+		console.info(data);
+		if (data.err) {
+			$.messager.alert('温馨提示','请先登录...','error');
+			location.href="../login.html";
+		} else {
+			$("#user_sid").text(data.sid);
+			$("#user_sname").text(data.sname);
+			$("#user_sex").text(data.sex);
+			$("#user_cname").text(data.cname);
+			$("#user_major").text(data.mname);
+			$("#user_cardId").text(data.cardID);
+			$("#user_tel").text(data.tel);
+			if (data.photo) {
+				$("#user_photo").attr("src", "../../stuPhotos/"+data.photo);
+			}
+		}
+	},"json");
+});
+</script>
