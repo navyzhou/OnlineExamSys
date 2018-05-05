@@ -99,6 +99,64 @@ public class FileUploadUtil {
 		return map;
 	}
 	
+	public Map<String,String> updatePhoto(PageContext pageContext){
+		Map<String,String> map=new HashMap<String,String>();
+		SmartUpload su=new SmartUpload();
+		
+		try {
+			//初始化上传工具 
+			su.initialize(pageContext);
+			
+			//设置参数
+			su.setCharset("utf-8");
+			su.setAllowedFilesList( ALLOWED );
+			su.setDeniedFilesList(DENIED);
+			su.setMaxFileSize(SINGLEFILESIZE);
+			su.setTotalMaxFileSize(TOTALMAXSIZE);
+			
+			//开始上传
+			su.upload();
+			
+			//从smartupload请求中获取普通文本参数  text、number、password 即非  file
+			Request request=su.getRequest();
+
+			//从请求中获取所有普通文本框的name属性的属性值
+			Enumeration enums=request.getParameterNames();
+			String fieldName=null;
+			while(enums.hasMoreElements()){
+				fieldName=String.valueOf(enums.nextElement());
+				map.put(fieldName, request.getParameter(fieldName));
+			}
+			
+			if(su.getFiles()!=null && su.getFiles().getCount()>0){ //说明有文件要上传
+				Files fs=su.getFiles();
+				Collection<File> files=fs.getCollection();
+				String path=null;
+				String filePath="";
+				String fName="";
+				String temp=null;
+				for(File fl:files){ //循环所有的文件
+					if(!fl.isMissing()){
+						path = request.getParameter("sid") + "." + fl.getFileExt();
+						filePath=PHOTOPATH+"/" + path;
+						//上传文件
+						fl.saveAs(pageContext.getServletContext().getRealPath("/")+filePath);
+					}
+				}
+				map.put("photo",path);
+			}
+		} catch (ServletException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} catch (SmartUploadException e) {
+			e.printStackTrace();
+		}
+		return map;
+	}
+	
 	
 	public String uploadExcelFile(PageContext pageContext){
 		SmartUpload su=new SmartUpload();

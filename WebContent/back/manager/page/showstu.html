@@ -30,21 +30,25 @@
 </div>
 
 <div id="showstu_upateInfo" class="easyui-dialog" style="width:720px;height:500px;padding-left:20px" data-options="resizable:true,modal:true,closed:true,onClose:function(){}"> 
+	<form id="updatestu_form">
 	<div id="showstu_upateInfo_box">
 		<div>
-			<img src="../../images/user.png" width="200px" height="200px;" id="showstu_upateInfo_photo"/>
-			<input id="showstu_upateInfo_images" type="file" style="width:100px;height:30px" value="修改图片"/>
+			<div id="updatestuInfophoto">
+				<img src="../../images/user.png" width="200px" height="200px;" id="showstu_upateInfo_photo"/>
+			</div>
+			<input id="showstu_upateInfo_images" type="file" name="photo" style="height:30px" value="修改图片" onchange="setImagePreviewss(this,'updatestuInfophoto')"/>
 		</div>
 		<ul>
 			<li><span>学号：</span><span id="showstu_upateInfo_sid"></span></li>
 			<li><span>姓名：</span><input id="showstu_upateInfo_sname" type="text" class="navy_input" /></li>
-			<li><span>专业：</span><select class="navy_select" id="showstu_upateInfo_major"><option value="">--请选择--</option></select></li>
+			<li><span>专业：</span><select class="navy_select" id="showstu_upateInfo_major" onchange="updateStu_updateClassInfo()"><option value="">--请选择--</option></select></li>
 			<li><span>班级：</span><select class="navy_select" id="showstu_upateInfo_cname"><option value="">--请选择--</option></select></li>
 			<li><span>性别：</span><input type="radio" name="sex" value="男"/>男&nbsp;<input type="radio" name="sex" value="女"/>女</li>
 			<li><span>身份证：</span><input id="showstu_upateInfo_cardId" type="text" class="navy_input"/></li>
 			<li><span>联系方式：</span><input id="showstu_upateInfo_tel" type="text" class="navy_input"/></span></li>
 		</ul>
 	</div>
+	</form>
 </div>
 
 
@@ -69,6 +73,7 @@ $(function(){
 			}
 		});
 		$("#showstu_search_mid").append($(strInfo));
+		$("#showstu_upateInfo_major").append($(strInfo));
 	},"json");
 	
 	$(".addstu_ul input,.addstu_ul select").focus(function(){
@@ -86,6 +91,18 @@ function showStu_updateClassInfos(){
 		}
 	})
 	$("#showstu_search_cid").append($(str));
+}
+
+function updateStu_updateClassInfo() {
+	var mid = $("#showstu_upateInfo_major").val();
+	$("#showstu_upateInfo_cname")[0].length = 1;
+	var str = "";
+	$.each(showstu_classInfo,function(index,item){
+		if (mid == item.mid){
+			str += "<option value='" + item.cid + "'>" + item.cname + "</option>";
+		}
+	})
+	$("#showstu_upateInfo_cname").append($(str));
 }
 
 function showStu_updateClassInfo(){
@@ -205,18 +222,67 @@ function showStuDeleteSid(sid) {
 
 function showStuUpdateBySid(sid) {
 	// 获取该学生的详细信息
-	
-	$("#showstu_upateInfo").dialog({
-		title: '修改学生信息',
-		iconCls:"icon-vcard-edit",
-		buttons: [{
-			text: '确定',
-			iconCls: 'icon-ok',
-			handler: function(){
-				
-			}
-		}]
-	}); 
-	$("#showstu_upateInfo").dialog("open");
+	$.post("../../stuInfo",{op:"showStuInfoBySid", sid:sid},function(data){
+		$("#showstu_upateInfo_sid").text(sid);
+		$("#showstu_upateInfo_sname").val(data.sname);
+		$("#showstu_upateInfo_cardId").val(data.cardID);
+		$("#showstu_upateInfo_tel").val(data.tel);
+		$("#showstu_upateInfo_major").val(data.mid);
+		updateStu_updateClassInfo();
+		if (data.photo != "") {
+			$("#showstu_upateInfo_photo").attr("src","../../../stuPhotos/"+data.photo);
+		}
+		
+		if (data.sex == "男") {
+			$("input:radio[name='sex']").eq(0).prop("checked", true);
+		} else {
+			$("input:radio[name='sex']").eq(1).prop("checked", true);
+		}
+		updateStu_updateClassInfo();
+		$("#showstu_upateInfo_cname").val(data.cid);
+		
+		$("#showstu_upateInfo").dialog({
+			title: '修改学生信息',
+			iconCls:"icon-vcard-edit",
+			buttons: [{
+				text: '确定',
+				iconCls: 'icon-ok',
+				handler: function(){
+					var sname = $("#showstu_upateInfo_sname").val();
+					var cardID = $("#showstu_upateInfo_cardId").val();
+					var tel = $("#showstu_upateInfo_tel").val();
+					var cid = $("#showstu_upateInfo_cname").val();
+					
+					var sex = $("input:radio[name='sex']:checked").val();
+					
+					$.ajaxFileUpload({
+						url:"../../stuInfo?op=updateStuInfo",
+						secureuri:false,
+						fileElementId:"showstu_upateInfo_images",
+						dataType:"text",
+						data:{sid:sid, sname:sname, cardID:cardID, tel:tel, cid:cid, sex:sex},
+						success:function(data,status){
+							data=parseInt($.trim(data));
+							if( data == -1 ){
+								$.messager.show({title:'温馨提示',msg:'您输入的信息不完整，请完善后重新提交...',timeout:3000,showType:'slide'});
+							} else if(data<=0 || data == NaN){
+								$.messager.alert('失败提示','学生信息修改失败，请稍后重试...','error');
+							} else {
+								$("#updatestu_form")[0].reset();
+								$("#updatestuInfophoto").html('<img src="../../images/user.png" width="200px" height="200px;" id="showstu_upateInfo_photo"/>');
+								$.messager.show({title:'成功提示',msg:'学生信息修改成功...',timeout:3000,showType:'slide'});
+								showStuDataGridObject.datagrid("reload");
+								$("#showstu_upateInfo").dialog("close");
+							}
+						},
+						error:function(data,status,e){
+							$("#waring-info").text("注册失败，请稍后重试或联系管理员...");
+						}
+					})
+				}
+			}]
+		}); 
+		$("#showstu_upateInfo").dialog("open");
+	},"json");
 }
 </script>

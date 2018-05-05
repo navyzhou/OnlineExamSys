@@ -34,7 +34,7 @@ public class StuInfoDaoImpl implements IStuInfoDao{
 	@Override
 	public List<StuInfo> findByPage(int pageNo, int pageSize) {
 		DBHelper db = new DBHelper();
-		String sql = "select * from(select a.*, rownum rn from(select sid,sname,sex,cardId,tel,cname,grade,mname,photo from stuInfo s,classInfo c,majorinfo m "
+		String sql = "select * from(select a.*, rownum rn from(select sid,sname,sex,cardId,tel,cname,grade,mname,c.mid,s.cid,photo from stuInfo s,classInfo c,majorinfo m "
 				+ " where s.cid=c.cid and c.mid=m.mid order by sid) a where rownum<=?) where rn>?";
 		return db.finds(sql,StuInfo.class, pageNo*pageSize, (pageNo-1)*pageSize);
 	}
@@ -42,7 +42,7 @@ public class StuInfoDaoImpl implements IStuInfoDao{
 	@Override
 	public List<StuInfo> findByCondition(String sid, String sname, String mid, String cid, String grade, int pageNo,int pageSize) {
 		DBHelper db = new DBHelper();
-		String sql = "select * from(select a.*, rownum rn from(select sid,sname,sex,cardId,tel,cname,grade,mname,photo from stuInfo s,classInfo c,majorinfo m "
+		String sql = "select * from(select a.*, rownum rn from(select sid,sname,sex,cardId,tel,cname,grade,mname,c.mid,s.cid,photo from stuInfo s,classInfo c,majorinfo m "
 				+ " where s.cid=c.cid and c.mid=m.mid";
 		List<Object> params = new ArrayList<Object>();
 		if (!StringUtil.isNull(sid)){
@@ -125,7 +125,7 @@ public class StuInfoDaoImpl implements IStuInfoDao{
 	@Override
 	public StuInfo findBySid(String sid) {
 		DBHelper db = new DBHelper();
-		String sql = "select s.*, cname, mname, s.cid, c.mid from stuInfo s,classInfo c,majorinfo m where sid = ?";
+		String sql = "select s.*, cname, mname, s.cid, c.mid from stuInfo s,classInfo c,majorinfo m where s.cid=c.cid and c.mid=m.mid and sid = ?";
 		return db.find(sql, StuInfo.class, sid);
 	}
 

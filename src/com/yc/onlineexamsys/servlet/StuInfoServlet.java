@@ -3,6 +3,7 @@ package com.yc.onlineexamsys.servlet;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -24,10 +25,10 @@ import com.yc.onlineexamsys.util.StringUtil;
 @WebServlet("/stuInfo")
 public class StuInfoServlet extends BasicServlet {
 	private static final long serialVersionUID = 1L;
-       
+
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String op = request.getParameter("op");
-		
+
 		if ("getInfos".equals(op)){ //获取专业、班级信息
 			getInfos(request,response);
 		} else if ("addStuInfos".equals(op)){ // 学生信息的批量上传
@@ -48,9 +49,34 @@ public class StuInfoServlet extends BasicServlet {
 			updatepwd(request, response);
 		} else if ("deleteStu".equals(op)) { // 删除学生信息
 			deleteStu(request, response);
+		} else if ("showStuInfoBySid".equals(op)) { // 显示学生信息
+			showStuInfoBySid(request, response);
+		} else if ("updateStuInfo".equals(op)) { // 修改学生信息
+			updateStuInfo(request, response);
 		}
 	}
-	
+
+	private void showStuInfoBySid(HttpServletRequest request, HttpServletResponse response) {
+		String sid = request.getParameter("sid");
+
+		IStuInfoBiz stuInfoBiz = new  StuInfoBizImpl();
+		StuInfo stuInfo = stuInfoBiz.findBySid(sid);
+		File fl = new File(request.getServletContext().getRealPath("/")+FileUploadUtil.PHOTOPATH,stuInfo.getPhoto());
+		if (!fl.exists()){
+			stuInfo.setPhoto("");
+		}
+		this.send(response, stuInfo);
+	}
+
+	private void updateStuInfo(HttpServletRequest request, HttpServletResponse response) {
+		FileUploadUtil uploadUtil = new FileUploadUtil();
+		PageContext pageContext = JspFactory.getDefaultFactory().getPageContext(this,request,response,null,true,1024,true);
+		Map<String, String> map = uploadUtil.updatePhoto(pageContext);
+		
+		IStuInfoBiz stuInfoBiz = new  StuInfoBizImpl();
+		this.send(response, stuInfoBiz.updateStuInfo(map.get("sid"), map.get("sname"), map.get("cid"), map.get("sex"), map.get("cardID"), map.get("tel"), map.get("photo")));
+	}
+
 	private void deleteStu(HttpServletRequest request, HttpServletResponse response) {
 		String sid = request.getParameter("sid");
 		IStuInfoBiz stuInfoBiz = new  StuInfoBizImpl();
@@ -101,7 +127,7 @@ public class StuInfoServlet extends BasicServlet {
 	private void resetPwd(HttpServletRequest request, HttpServletResponse response) {
 		String sid = request.getParameter("sid");
 		String pwd = request.getParameter("pwd");
-		
+
 		IStuInfoBiz stuInfoBiz = new StuInfoBizImpl();
 		this.send(response, stuInfoBiz.resetPwd(sid, pwd));
 	}
@@ -114,7 +140,7 @@ public class StuInfoServlet extends BasicServlet {
 		String mid = request.getParameter("mid");
 		String cid = request.getParameter("cid");
 		String grade = request.getParameter("grade");
-		
+
 		IStuInfoBiz stuInfoBiz = new StuInfoBizImpl();
 		this.send(response, stuInfoBiz.findByCondition(sid, sname, mid, cid, grade, pageNo, pageSize));
 	}
@@ -122,7 +148,7 @@ public class StuInfoServlet extends BasicServlet {
 	private void findByPage(HttpServletRequest request, HttpServletResponse response) {
 		int pageNo = Integer.parseInt(request.getParameter("page"));
 		int pageSize = Integer.parseInt(request.getParameter("rows"));
-		
+
 		IStuInfoBiz stuInfoBiz = new StuInfoBizImpl();
 		this.send(response, stuInfoBiz.findByPage(pageNo, pageSize));
 	}
@@ -134,7 +160,7 @@ public class StuInfoServlet extends BasicServlet {
 		String cardId = request.getParameter("cardId");
 		String sid = request.getParameter("sid");
 		String tel = request.getParameter("tel");
-		
+
 		IStuInfoBiz stuInfoBiz = new StuInfoBizImpl();
 		this.send(response, stuInfoBiz.addStuInfo(sid, sname, cid, sex, cardId, tel));
 	}
