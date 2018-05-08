@@ -21,9 +21,9 @@ public class AnswerSheetDaoImpl implements IAnswerSheetDao{
 	public List<AnswerSheet> findPageBySid(String sid, int pageNo, int pageSize) {
 		DBHelper db = new DBHelper();
 		String sql="select * from (select aa.*,rownum rn from("
-				+ "	select s.sid,p.pid,c.cname,a.score,p.status from stuInfo s join classInfo cl on s.cid=cl.cid "
+				+ "	select s.sid,p.pid,c.cname pname,c.semester sname, a.score,p.status from stuInfo s join classInfo cl on s.cid=cl.cid "
 				+ "join testpaper p on p.cids like cl.cid||',%' or  p.cids like '%,'||cl.cid or p.cids like '%,'||cl.cid||',%' or p.cids=to_char(cl.cid) "
-				+ "join courseinfo c on c.cid=p.cid left join answersheet a on a.sid=s.sid and p.pid=a.pid where p.status>=2 and s.sid =?) aa where rownum<=?) where rn>?";
+				+ "join courseinfo c on c.cid=p.cid left join answersheet a on a.sid=s.sid and p.pid=a.pid where p.status>2 and s.sid =?) aa where rownum<=?) where rn>?";
 		return db.finds(sql, AnswerSheet.class, sid, pageNo*pageSize, (pageNo-1)*pageSize);
 	}
 

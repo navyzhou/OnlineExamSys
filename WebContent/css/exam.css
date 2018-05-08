@@ -45,9 +45,11 @@ header>#surplustime>span {
 
 #question_ans {
 	position: fixed;
-	top: 100px;
+	top: 80px;
 	left: 10px;
 	width: 120px;
+	height: 600px;
+	overflow-y: scroll; 
 }
 
 #question_ans>ul {
